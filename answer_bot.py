@@ -77,60 +77,54 @@ def screen_grab(to_save):
 
 def crop_image(path):
     image = cv2.imread(path)
-    #c v2.imshow("Original Image", image)
-    # cv2.waitKey(5000)
-
     height, width = image.shape[:2]
 
-    # GETTING THE QUESTION
+    # # GETTING THE QUESTION
+    # # Let's get the starting pixel coordiantes (top left of cropped top)
+    # start_row, start_col = int(height * 23/100), int(0)
+    # # Let's get the ending pixel coordinates (bottom right of cropped top)
+    # end_row, end_col = int(height * 44/100), int(width)
+    #
+    # cropped_img = image[start_row:end_row, start_col:end_col]
+    # cv2.imwrite("Screens/question.png", cropped_img)
+    #
+    # # GETTING ANSWER 1
+    # start_row, start_col = int(height * 44/100), int(0)
+    # end_row, end_col = int(height * 55/100), int(width)
+    #
+    # cropped_img = image[start_row:end_row, start_col:end_col]
+    # cv2.imwrite("Screens/answer1.png", cropped_img)
+    #
+    # # GETTING ANSWER 2
+    # start_row, start_col = int(height * 55 / 100), int(0)
+    # end_row, end_col = int(height * 66 / 100), int(width) # + 11 from the top
+    #
+    # cropped_img = image[start_row:end_row, start_col:end_col]
+    # cv2.imwrite("Screens/answer2.png", cropped_img)
+    #
+    # # GETTING ANSWER 3
+    # start_row, start_col = int(height * 65 / 100), int(0)
+    # end_row, end_col = int(height * 77 / 100), int(width)
+    #
+    # cropped_img = image[start_row:end_row, start_col:end_col]
+    # cv2.imwrite("Screens/answer3.png", cropped_img)
+
+    # GETTING THE QUESTION AND THE ASWERS
     # Let's get the starting pixel coordiantes (top left of cropped top)
     start_row, start_col = int(height * 23/100), int(0)
     # Let's get the ending pixel coordinates (bottom right of cropped top)
-    end_row, end_col = int(height * 43/100), int(width)
-    cropped_img = image[start_row:end_row, start_col:end_col]
-
-    # cv2.imshow("Question", cropped_top)
-    # cv2.waitKey(3000)
-    cv2.imwrite("Screens/question.png", cropped_img)
-
-    # GETTING ANSWER 1
-    start_row, start_col = int(height * 44/100), int(0)
-    end_row, end_col = int(height * 55/100), int(width)
+    end_row, end_col = int(height * 78/100), int(width)
 
     cropped_img = image[start_row:end_row, start_col:end_col]
+    cv2.imwrite("Screens/cropped.png", cropped_img)
 
-    # cv2.imshow("Answer 1", cropped_bot)
-    # cv2.waitKey(3000)
-    cv2.imwrite("Screens/answer1.png", cropped_img)
-
-    # GETTING ANSWER 2
-    start_row, start_col = int(height * 55 / 100), int(0)
-    end_row, end_col = int(height * 66 / 100), int(width) # + 11 from the top
-
-    cropped_img = image[start_row:end_row, start_col:end_col]
-
-    # cv2.imshow("Answer 2", cropped_bot)
-    # cv2.waitKey(3000)
-    cv2.imwrite("Screens/answer2.png", cropped_img)
-
-    # GETTING ANSWER 3
-    start_row, start_col = int(height * 66 / 100), int(0)
-    end_row, end_col = int(height * 77 / 100), int(width)
-
-    cropped_img = image[start_row:end_row, start_col:end_col]
-
-    # cv2.imshow("Answer 3", cropped_bot)
-    # cv2.waitKey(3000)
-    cv2.imwrite("Screens/answer3.png", cropped_img)
-
-    # cv2.destroyAllWindows()
-    return ["Screens/question.png", "Screens/answer1.png", "Screens/answer2.png", "Screens/answer3.png"]
+    return "Screens/cropped.png"
 
 
-def apply_pytesseract(image):
+def apply_pytesseract(input_image):
     # prepare argparse
     ap = argparse.ArgumentParser(description='HQ_Bot')
-    ap.add_argument("-i", "--image", required=False, default=image, help="path to input image to be OCR'd")
+    ap.add_argument("-i", "--image", required=False, default=input_image, help="path to input image to be OCR'd")
     ap.add_argument("-p", "--preprocess", type=str, default="thresh", help="type of preprocessing to be done")
     args = vars(ap.parse_args())
 
@@ -149,7 +143,7 @@ def apply_pytesseract(image):
     cv2.imwrite(filename, gray)
 
     # load the image as a PIL/Pillow image, apply OCR, and then delete the temporary file
-    text = pytesseract.image_to_string(Image.open(filename), lang='ita')
+    text = pytesseract.image_to_string(Image.open(filename))
     # os.remove(filename)
     # os.remove(screenshot_file)
 
@@ -167,10 +161,8 @@ def read_screen():
     screenshot_file = "Screens/livequiz0.jpg"
 
     question_and_answers = crop_image(screenshot_file)
-    for img in question_and_answers:
-        text = apply_pytesseract(img)
-        print(text)
-
+    text = apply_pytesseract(question_and_answers)
+    print(text)
 
     # show the output images
     # cv2.imshow("Image", image)
@@ -183,7 +175,7 @@ def read_screen():
     # spinner.succeed()
     # spinner.stop()
 
-    exit()  # TODO delete this
+    exit(0)  # TODO delete this
     return text
 
 
