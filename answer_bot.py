@@ -40,23 +40,12 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-# sample questions from previous games
-sample_questions = {}
-
 # list of words to clean from the question during google search
 remove_words = []
 
 # negative words
 negative_words = []
 
-# GUI interface 
-# def gui_interface():
-# 	app = wx.App()
-# 	frame = wx.Frame(None, -1, 'win.py')
-# 	frame.SetDimensions(0,0,640,480)
-# 	frame.Show()
-# 	app.MainLoop()
-# 	return None
 
 def handle_exceptions(func):
     """ This function is used as a decorator to wrap the implemented method avoiding weird crashes"""
@@ -78,62 +67,62 @@ def load_json():
     global remove_words, sample_questions, negative_words
     remove_words = json.loads(open("Data/settings.json").read())["remove_words"]
     negative_words = json.loads(open("Data/settings.json").read())["negative_words"]
-    sample_questions = json.loads(open("Data/questions.json").read())
+
 
 
 def screen_grab(to_save):
     """ Takes a screenshot and saves it."""
     # 31,228 485,620 co-ords of screenshot// left side of screen
-    im = Imagegrab.grab(bbox=(31,228,485,640))
-    im.save(to_save)
+    os.system(" import -window MIMAX2  " + to_save)
 
 
-def crop_image(path):
+
+
+def crop_image(path, qnumbers):
     """Cropping the image to remove undesired stuff"""
+    crop_config = [39 / 100, 42 / 100, 44 / 100]
+    storepath = ["Screens/question.png", "Screens/answer1.png", "Screens/answer2.png", "Screens/answer3.png"]
+
     image = cv2.imread(path)
     height, width = image.shape[:2]
+    start_q = 23/100
+    end_q = crop_config[qnumbers-1]
 
     # The problem of this huge portion of code is that the question hasn't always the same lenght
-    # # GETTING THE QUESTION
-    # # Let's get the starting pixel coordiantes (top left of cropped top)
-    # start_row, start_col = int(height * 23/100), int(0)
-    # # Let's get the ending pixel coordinates (bottom right of cropped top)
-    # end_row, end_col = int(height * 44/100), int(width)
-    #
-    # cropped_img = image[start_row:end_row, start_col:end_col]
-    # cv2.imwrite("Screens/question.png", cropped_img)
-    #
-    # # GETTING ANSWER 1
-    # start_row, start_col = int(height * 44/100), int(0)
-    # end_row, end_col = int(height * 55/100), int(width)
-    #
-    # cropped_img = image[start_row:end_row, start_col:end_col]
-    # cv2.imwrite("Screens/answer1.png", cropped_img)
-    #
-    # # GETTING ANSWER 2
-    # start_row, start_col = int(height * 55 / 100), int(0)
-    # end_row, end_col = int(height * 66 / 100), int(width) # + 11 from the top
-    #
-    # cropped_img = image[start_row:end_row, start_col:end_col]
-    # cv2.imwrite("Screens/answer2.png", cropped_img)
-    #
-    # GETTING ANSWER 3
-    # start_row, start_col = int(height * 66 / 100), int(30) # 66/100 30
-    # end_row, end_col = int(height * 74 / 100), int(width) # 74/100  *0.5
-    #
-    # cropped_img = image[start_row:end_row, start_col:end_col]
-    # cv2.imwrite("Screens/answer3.png", cropped_img)
-
-    # GETTING THE QUESTION AND THE ASWERS
+    # GETTING THE QUESTION
     # Let's get the starting pixel coordiantes (top left of cropped top)
-    start_row, start_col = int(height * 23/100), int(0)
+    start_row, start_col = int(height * start_q), int(0)
     # Let's get the ending pixel coordinates (bottom right of cropped top)
-    end_row, end_col = int(height * 78/100), int(width)
+    end_row, end_col = int(height * end_q), int(width)
 
     cropped_img = image[start_row:end_row, start_col:end_col]
-    cv2.imwrite("Screens/cropped.png", cropped_img)
+    # cv2.imshow("question", cropped_img)
+    # cv2.waitKey(2000)
+    cv2.imwrite("Screens/question.png", cropped_img)
 
-    return "Screens/cropped.png"
+    for img in storepath[1:]:
+        # GETTING ANSWERS
+        start_row, start_col = int(height * end_q), int(0)
+        end_row, end_col = int(height * (end_q + 11 / 100)), int(width)
+
+        cropped_img = image[start_row:end_row, start_col:end_col]
+        # cv2.imshow(img, cropped_img)
+        # cv2.waitKey(2000)
+        cv2.imwrite(img, cropped_img)
+
+        end_q = end_q + 11/100
+
+    cv2.destroyAllWindows()
+
+    # # GETTING THE QUESTION AND THE ASWERS
+    # # Let's get the starting pixel coordiantes (top left of cropped top)
+    # start_row, start_col = int(height * 27/100), int(0)
+    # # Let's get the ending pixel coordinates (bottom right of cropped top)
+    # end_row, end_col = int(height * 79/100), int(width)
+    # cropped_img = image[start_row:end_row, start_col:end_col]
+    # cv2.imwrite("Screens/cropped.png", cropped_img)
+
+    return storepath
 
 
 def apply_pytesseract(input_image):
@@ -166,18 +155,22 @@ def apply_pytesseract(input_image):
     return text
 
 
-def read_screen():
+def read_screen(lineno):
     """ Get OCR text //questions and options"""
     print("Taking the screen shot....")
     screenshot_file = "Screens/to_ocr.png"
     #screen_grab(screenshot_file)
 
     # temporary file used for testing
-    screenshot_file = "Screens/livequiz3.jpg"
+    screenshot_file = "Screens/livequiz0.jpg"
 
-    question_and_answers = crop_image(screenshot_file)
-    text = apply_pytesseract(question_and_answers)
-    print(text)
+    question_and_answers = crop_image(screenshot_file, lineno)
+
+    question = apply_pytesseract(question_and_answers[0])
+    answers = []
+    for qa in question_and_answers[1:]:
+        answerx = apply_pytesseract(qa)
+        answers.append(answerx)
 
     # show the output images
     # cv2.imshow("Image", image)
@@ -186,25 +179,26 @@ def read_screen():
     # if cv2.waitKey(0):
     #     cv2.destroyAllWindows()
     # print(text)
+    print(question)
+    print(answers)
+    return question, answers
 
-    return text
 
-
-def parse_question():
-    """Get questions and options from OCR text"""
-    text = read_screen()
-    lines = text.splitlines()
-    question = ""
-    options = []
-
-    for line in lines:
-        if '?' not in question:
-            question = question + " " + line
-        else:
-            if line != '':
-                options.append(line)
-
-    return question, options
+# def parse_question():
+#     """Get questions and options from OCR text"""
+#     text = read_screen()
+#     lines = text.splitlines()
+#     question = ""
+#     options = []
+#
+#     for line in lines:
+#         if '?' not in question:
+#             question = question + " " + line
+#         else:
+#             if line.strip():
+#                 options.append(line)
+#
+#     return question, options
 
 
 def simplify_ques(question):
@@ -281,6 +275,7 @@ def smart_answer(content,qwords):
 
 # use google to get wiki page
 def google_wiki(sim_ques, options, neg):
+    print(sim_ques)
     spinner = Halo(text='Googling and searching Wikipedia', spinner='dots2')
     spinner.start()
     num_pages = 1
@@ -338,11 +333,11 @@ def google_wiki(sim_ques, options, neg):
 #             print(option + " { points: " + bcolors.BOLD + str(point) + bcolors.ENDC + " }\n")
 
 
-@handle_exceptions
-def get_points_live():
+
+def get_points_live(lineno):
     """Main  control flow"""
     neg= False
-    question,options = parse_question()
+    question, options = read_screen(lineno)
     simq = ""
     points = []
     simq, neg = simplify_ques(question)
@@ -362,9 +357,9 @@ def get_points_live():
 if __name__ == "__main__":
     load_json()
     while(1):
-        keypressed = input(bcolors.WARNING +'\nPress s to screenshot live game, or q to quit:\n' + bcolors.ENDC)
-        if keypressed == 's':
-            get_points_live()
+        keypressed = input(bcolors.WARNING + '\nGive the questions number of lines, or q to quit:\n' + bcolors.ENDC)
+        if keypressed in ['1', '2', '3']:
+            get_points_live(int(keypressed))
         elif keypressed == 'q':
             break
         else:
