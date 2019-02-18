@@ -24,6 +24,7 @@ import cv2
 import os
 import pyscreenshot as Imagegrab
 import sys
+import functools
 # import wx
 from halo import Halo
 
@@ -57,6 +58,18 @@ negative_words = []
 # 	app.MainLoop()
 # 	return None
 
+def handle_exceptions(func):
+    """ This function is used as a decorator to wrap the implemented method avoiding weird crashes"""
+    @functools.wraps(func)  # supports introspection
+    def wrapper_decorator(*args, **kwargs):
+        try:
+            value = func(*args, **kwargs)
+            return value
+        except Exception as e:
+            print("Something went wrong ...")
+            print(e)
+    return wrapper_decorator
+
 
 def load_json():
     """ Loads a list of words to be removed and negative words from a json file to a variable.
@@ -76,9 +89,11 @@ def screen_grab(to_save):
 
 
 def crop_image(path):
+    """Cropping the image to remove undesired stuff"""
     image = cv2.imread(path)
     height, width = image.shape[:2]
 
+    # The problem of this huge portion of code is that the question hasn't always the same lenght
     # # GETTING THE QUESTION
     # # Let's get the starting pixel coordiantes (top left of cropped top)
     # start_row, start_col = int(height * 23/100), int(0)
@@ -102,9 +117,9 @@ def crop_image(path):
     # cropped_img = image[start_row:end_row, start_col:end_col]
     # cv2.imwrite("Screens/answer2.png", cropped_img)
     #
-    # # GETTING ANSWER 3
-    # start_row, start_col = int(height * 65 / 100), int(0)
-    # end_row, end_col = int(height * 77 / 100), int(width)
+    # GETTING ANSWER 3
+    # start_row, start_col = int(height * 66 / 100), int(30) # 66/100 30
+    # end_row, end_col = int(height * 74 / 100), int(width) # 74/100  *0.5
     #
     # cropped_img = image[start_row:end_row, start_col:end_col]
     # cv2.imwrite("Screens/answer3.png", cropped_img)
@@ -122,6 +137,7 @@ def crop_image(path):
 
 
 def apply_pytesseract(input_image):
+    """Convert the image to black and white and apply pytesseract to get the text"""
     # prepare argparse
     ap = argparse.ArgumentParser(description='HQ_Bot')
     ap.add_argument("-i", "--image", required=False, default=input_image, help="path to input image to be OCR'd")
@@ -149,16 +165,15 @@ def apply_pytesseract(input_image):
 
     return text
 
-# get OCR text //questions and options
+
 def read_screen():
-    # spinner = Halo(text='Reading screen', spinner='bouncingBar')
-    # spinner.start()
+    """ Get OCR text //questions and options"""
     print("Taking the screen shot....")
     screenshot_file = "Screens/to_ocr.png"
     #screen_grab(screenshot_file)
 
     # temporary file used for testing
-    screenshot_file = "Screens/livequiz0.jpg"
+    screenshot_file = "Screens/livequiz3.jpg"
 
     question_and_answers = crop_image(screenshot_file)
     text = apply_pytesseract(question_and_answers)
@@ -172,50 +187,42 @@ def read_screen():
     #     cv2.destroyAllWindows()
     # print(text)
 
-    # spinner.succeed()
-    # spinner.stop()
-
-    exit(0)  # TODO delete this
     return text
 
 
-# get questions and options from OCR text
 def parse_question():
+    """Get questions and options from OCR text"""
     text = read_screen()
     lines = text.splitlines()
     question = ""
-    options = list()
-    flag=False
+    options = []
 
-    for line in lines :
-        if not flag :
-            question=question+" "+line
-
-        if '?' in line :
-            flag=True
-            continue
-
-        if flag :
-            if line != '' :
+    for line in lines:
+        if '?' not in question:
+            question = question + " " + line
+        else:
+            if line != '':
                 options.append(line)
 
     return question, options
 
-# simplify question and remove which,what....etc //question is string
+
 def simplify_ques(question):
-    neg=False
+    """Simplify question and remove the words in the setting.json"""
+    neg = False
     qwords = question.lower().split()
+    # check if the question is a negative one
     if [i for i in qwords if i in negative_words]:
-        neg=True
+        neg = True
     cleanwords = [word for word in qwords if word.lower() not in remove_words]
     temp = ' '.join(cleanwords)
-    clean_question=""
+    clean_question = ""
     #remove ?
     for ch in temp:
         if ch!="?" or ch!="\"" or ch!="\'":
             clean_question=clean_question+ch
 
-    return clean_question.lower(),neg
+    return clean_question.lower(), neg
 
 
 # get web page
@@ -228,6 +235,7 @@ def get_page(link):
         return html
     except (urllib2.URLError, urllib2.HTTPError, ValueError) as e:
         return ''
+
 
 # split the string
 def split_string(source):
@@ -245,17 +253,21 @@ def split_string(source):
                 output[-1] = output[-1] + char
     return output
 
+
 # normalize points // get rid of common appearances // "quote" wiki option + ques
 def normalize():
     return None
+
 
 # take screen shot of screen every 2 seconds and check for question
 def check_screen():
     return None
 
+
 # wait for certain milli seconds 
 def wait(msec):
     return None
+
 
 # answer by combining two words
 def smart_answer(content,qwords):
@@ -265,6 +277,7 @@ def smart_answer(content,qwords):
         if content.count(el[0]+" "+el[1])!=0 :
             points+=1000
     return points
+
 
 # use google to get wiki page
 def google_wiki(sim_ques, options, neg):
@@ -303,32 +316,33 @@ def google_wiki(sim_ques, options, neg):
             maxo=original
     spinner.succeed()
     spinner.stop()
-    return points,maxo
+    return points, maxo
 
 
-# return points for sample_questions
-def get_points_sample():
-    simq = ""
-    x = 0
-    for key in sample_questions:
-        x = x + 1
-        points = []
-        simq,neg = simplify_ques(key)
-        options = sample_questions[key]
-        simq = simq.lower()
-        maxo=""
-        points, maxo = google_wiki(simq, options,neg)
-        print("\n" + str(x) + ". " + bcolors.UNDERLINE + key + bcolors.ENDC + "\n")
-        for point, option in zip(points, options):
-            if maxo == option.lower():
-                option=bcolors.OKGREEN+option+bcolors.ENDC
-            print(option + " { points: " + bcolors.BOLD + str(point) + bcolors.ENDC + " }\n")
+# # return points for sample_questions
+# def get_points_sample():
+#     simq = ""
+#     x = 0
+#     for key in sample_questions:
+#         x = x + 1
+#         points = []
+#         simq,neg = simplify_ques(key)
+#         options = sample_questions[key]
+#         simq = simq.lower()
+#         maxo=""
+#         points, maxo = google_wiki(simq, options,neg)
+#         print("\n" + str(x) + ". " + bcolors.UNDERLINE + key + bcolors.ENDC + "\n")
+#         for point, option in zip(points, options):
+#             if maxo == option.lower():
+#                 option=bcolors.OKGREEN+option+bcolors.ENDC
+#             print(option + " { points: " + bcolors.BOLD + str(point) + bcolors.ENDC + " }\n")
 
 
-# return points for live game // by screenshot
+@handle_exceptions
 def get_points_live():
+    """Main  control flow"""
     neg= False
-    question,options=parse_question()
+    question,options = parse_question()
     simq = ""
     points = []
     simq, neg = simplify_ques(question)
@@ -336,7 +350,7 @@ def get_points_live():
     m=1
     if neg:
         m=-1
-    points,maxo = google_wiki(simq, options, neg)
+    points, maxo = google_wiki(simq, options, neg)
     print("\n" + bcolors.UNDERLINE + question + bcolors.ENDC + "\n")
     for point, option in zip(points, options):
         if maxo == option.lower():
@@ -348,14 +362,11 @@ def get_points_live():
 if __name__ == "__main__":
     load_json()
     while(1):
-        keypressed = input(bcolors.WARNING +'\nPress s to screenshot live game, sampq to run against sample questions or q to quit:\n' + bcolors.ENDC)
+        keypressed = input(bcolors.WARNING +'\nPress s to screenshot live game, or q to quit:\n' + bcolors.ENDC)
         if keypressed == 's':
             get_points_live()
-        elif keypressed == 'sampq':
-            get_points_sample()
         elif keypressed == 'q':
             break
         else:
             print(bcolors.FAIL + "\nUnknown input" + bcolors.ENDC)
-	
 
