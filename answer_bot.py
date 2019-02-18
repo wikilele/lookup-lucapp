@@ -25,6 +25,7 @@ import os
 import pyscreenshot as Imagegrab
 import sys
 import functools
+import np
 # import wx
 from halo import Halo
 
@@ -80,12 +81,12 @@ def screen_grab(to_save):
 
 def crop_image(path, qnumbers):
     """Cropping the image to remove undesired stuff"""
-    crop_config = [39 / 100, 42 / 100, 44 / 100]
+    crop_config = [41/ 100, 45 / 100, 46 / 100]
     storepath = ["Screens/question.png", "Screens/answer1.png", "Screens/answer2.png", "Screens/answer3.png"]
 
     image = cv2.imread(path)
     height, width = image.shape[:2]
-    start_q = 23/100
+    start_q = 24/100
     end_q = crop_config[qnumbers-1]
 
     # The problem of this huge portion of code is that the question hasn't always the same lenght
@@ -130,26 +131,36 @@ def apply_pytesseract(input_image):
     # prepare argparse
     ap = argparse.ArgumentParser(description='HQ_Bot')
     ap.add_argument("-i", "--image", required=False, default=input_image, help="path to input image to be OCR'd")
-    ap.add_argument("-p", "--preprocess", type=str, default="thresh", help="type of preprocessing to be done")
+    ap.add_argument("-p", "--preprocess", type=str, default="blur", help="type of preprocessing to be done")
     args = vars(ap.parse_args())
 
     # load the image
     image = cv2.imread(args["image"])
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    if args["preprocess"] == "thresh":
-        gray = cv2.threshold(gray, 0, 255,
+    kernel = np.ones((1, 1), np.uint8)
+    gray = cv2.dilate(gray, kernel, iterations=1)
+    gray = cv2.erode(gray, kernel, iterations=1)
+
+    gray_thresh = cv2.threshold(gray, 0, 255,
                              cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-    elif args["preprocess"] == "blur":
-        gray = cv2.medianBlur(gray, 3)
+    gray_blur = cv2.medianBlur(gray, 3)
 
     # store grayscale image as a temp file to apply OCR
-    filename = "Screens/{}.png".format(os.getpid())
-    cv2.imwrite(filename, gray)
+    filename = "Screens/{}blur.png".format(os.getpid())
+    cv2.imwrite(filename, gray_blur)
 
     # load the image as a PIL/Pillow image, apply OCR, and then delete the temporary file
     text = pytesseract.image_to_string(Image.open(filename))
-    # os.remove(filename)
+    os.remove(filename)
+
+    if not text:
+        filename = "Screens/{}thresh.png".format(os.getpid())
+        cv2.imwrite(filename, gray_thresh)
+
+        # load the image as a PIL/Pillow image, apply OCR, and then delete the temporary file
+        text = pytesseract.image_to_string(Image.open(filename))
+
     # os.remove(screenshot_file)
 
     return text
@@ -159,10 +170,10 @@ def read_screen(lineno):
     """ Get OCR text //questions and options"""
     print("Taking the screen shot....")
     screenshot_file = "Screens/to_ocr.png"
-    #screen_grab(screenshot_file)
+    screen_grab(screenshot_file)
 
     # temporary file used for testing
-    screenshot_file = "Screens/livequiz0.jpg"
+    # screenshot_file = "Screens/livequiz4.jpg"
 
     question_and_answers = crop_image(screenshot_file, lineno)
 
@@ -181,6 +192,7 @@ def read_screen(lineno):
     # print(text)
     print(question)
     print(answers)
+    
     return question, answers
 
 
