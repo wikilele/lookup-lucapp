@@ -26,6 +26,7 @@ import pyscreenshot as Imagegrab
 import sys
 import functools
 import np
+import time, threading
 from os import listdir
 from os.path import isfile, join
 # import wx
@@ -49,6 +50,11 @@ remove_words = []
 # negative words
 negative_words = []
 
+# path where the smartphone is mounted
+mypath = "phone/Archivio condiviso interno/DCIM/Screenshots/"
+# number of screenshot already in this path
+screenno = 0
+
 
 def handle_exceptions(func):
     """ This function is used as a decorator to wrap the implemented method avoiding weird crashes"""
@@ -63,13 +69,17 @@ def handle_exceptions(func):
     return wrapper_decorator
 
 
+# loads all he settings
 def load_json():
     """ Loads a list of words to be removed and negative words from a json file to a variable.
     It loads also questions from the previous games.
     """
-    global remove_words, sample_questions, negative_words
+    global remove_words, negative_words, screenno
     remove_words = json.loads(open("Data/settings.json").read())["remove_words"]
     negative_words = json.loads(open("Data/settings.json").read())["negative_words"]
+
+    onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
+    screenno = len(onlyfiles)
 
 
 def screen_grab():
@@ -82,7 +92,7 @@ def screen_grab():
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
     # os.system("sudo umount phone/")
     print(onlyfiles[-1])
-    return mypath + onlyfiles[-3] # -3,-8,-1
+    return mypath + onlyfiles[-1] # -3,-8,-1
 
 
 def crop_image(path):
@@ -192,34 +202,10 @@ def read_screen():
         answerx = apply_pytesseract(qa)
         answers.append(answerx)
 
-    # show the output images
-    # cv2.imshow("Image", image)
-    # cv2.imshow("Output", gray)
-    # os.remove(screenshot_file)
-    # if cv2.waitKey(0):
-    #     cv2.destroyAllWindows()
-    # print(text)
     print(question)
     print(answers)
     exit(0)
     return question, answers
-
-
-# def parse_question():
-#     """Get questions and options from OCR text"""
-#     text = read_screen()
-#     lines = text.splitlines()
-#     question = ""
-#     options = []
-#
-#     for line in lines:
-#         if '?' not in question:
-#             question = question + " " + line
-#         else:
-#             if line.strip():
-#                 options.append(line)
-#
-#     return question, options
 
 
 def simplify_ques(question):
@@ -338,26 +324,6 @@ def google_wiki(sim_ques, options, neg):
     return points, maxo
 
 
-# # return points for sample_questions
-# def get_points_sample():
-#     simq = ""
-#     x = 0
-#     for key in sample_questions:
-#         x = x + 1
-#         points = []
-#         simq,neg = simplify_ques(key)
-#         options = sample_questions[key]
-#         simq = simq.lower()
-#         maxo=""
-#         points, maxo = google_wiki(simq, options,neg)
-#         print("\n" + str(x) + ". " + bcolors.UNDERLINE + key + bcolors.ENDC + "\n")
-#         for point, option in zip(points, options):
-#             if maxo == option.lower():
-#                 option=bcolors.OKGREEN+option+bcolors.ENDC
-#             print(option + " { points: " + bcolors.BOLD + str(point) + bcolors.ENDC + " }\n")
-
-
-
 def get_points_live():
     """Main  control flow"""
     neg= False
@@ -375,6 +341,16 @@ def get_points_live():
         if maxo == option.lower():
             option=bcolors.OKGREEN+option+bcolors.ENDC
         print(option + " { points: " + bcolors.BOLD + str(point*m) + bcolors.ENDC + " }\n")
+
+
+def polling_dir():
+    """Polling the directory every tot seconds to check if a new screenshot has been added"""
+    onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
+
+    if len(onlyfiles) > screenno:
+        read_screen(mypath + onlyfiles[-1])
+
+    threading.Timer(1, polling_dir).start()
 
 
 # menu// main func
