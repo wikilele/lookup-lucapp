@@ -70,7 +70,7 @@ def handle_exceptions(func):
 
 
 # loads all he settings
-def load_json():
+def load_settings():
     """ Loads a list of words to be removed and negative words from a json file to a variable.
     It loads also questions from the previous games.
     """
@@ -78,6 +78,7 @@ def load_json():
     remove_words = json.loads(open("Data/settings.json").read())["remove_words"]
     negative_words = json.loads(open("Data/settings.json").read())["negative_words"]
 
+    os.system("jmtpfs phone/")
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
     screenno = len(onlyfiles)
 
@@ -186,10 +187,10 @@ def apply_pytesseract(input_image):
     return text
 
 
-def read_screen():
+def read_screen(screenshot_file):
     """ Get OCR text //questions and options"""
-    print("Taking the screen shot....")
-    screenshot_file = screen_grab()
+    # print("Taking the screen shot....")
+    # screenshot_file = screen_grab()
 
     # temporary file used for testing
     # screenshot_file = "Screens/livequiz4.jpg"
@@ -324,10 +325,10 @@ def google_wiki(sim_ques, options, neg):
     return points, maxo
 
 
-def get_points_live():
+def get_points_live(screenpath):
     """Main  control flow"""
     neg= False
-    question, options = read_screen()
+    question, options = read_screen(screenpath)
     simq = ""
     points = []
     simq, neg = simplify_ques(question)
@@ -348,21 +349,15 @@ def polling_dir():
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
     if len(onlyfiles) > screenno:
-        read_screen(mypath + onlyfiles[-1])
+        get_points_live(mypath + onlyfiles[-1])
 
     threading.Timer(1, polling_dir).start()
 
 
 # menu// main func
 if __name__ == "__main__":
-    load_json()
-    while(1):
-        keypressed = input(bcolors.WARNING + '\nGive the questions number of lines, or q to quit:\n' + bcolors.ENDC)
-        if keypressed is '5':
-            get_points_live()
-            os.system("sudo umount phone/")
-        elif keypressed == 'q':
-            break
-        else:
-            print(bcolors.FAIL + "\nUnknown input" + bcolors.ENDC)
+    load_settings()
+    print(bcolors.WARNING + "\nThe script is running, Ctrl-C to stop, don't forget to umount phone/\n" + bcolors.ENDC)
+
+    polling_dir()
 
