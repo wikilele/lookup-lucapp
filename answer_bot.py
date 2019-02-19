@@ -72,40 +72,43 @@ def load_json():
     negative_words = json.loads(open("Data/settings.json").read())["negative_words"]
 
 
-
-def screen_grab(to_save):
+def screen_grab():
     """ Takes a screenshot and saves it."""
     # 31,228 485,620 co-ords of screenshot// left side of screen
+    # only if the image capture software has hgih quality
     # os.system(" import -window MIMAX2  " + to_save)
     os.system("jmtpfs phone/")
     mypath = "phone/Archivio condiviso interno/DCIM/Screenshots/"
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
     # os.system("sudo umount phone/")
     print(onlyfiles[-1])
-    return mypath + onlyfiles[-1]
+    return mypath + onlyfiles[-3] # -3,-8,-1
 
 
-def crop_image(path, qnumbers):
+def crop_image(path):
     """Cropping the image to remove undesired stuff"""
     crop_config = [41/ 100, 45 / 100, 46/ 100]
     storepath = ["Screens/question.png", "Screens/answer1.png", "Screens/answer2.png", "Screens/answer3.png"]
 
     image = cv2.imread(path)
     height, width = image.shape[:2]
-    start_q = 24/100
-    end_q = crop_config[qnumbers-1]
 
     # The problem of this huge portion of code is that the question hasn't always the same lenght
     # GETTING THE QUESTION
     # Let's get the starting pixel coordiantes (top left of cropped top)
-    start_row, start_col = int(height * start_q), int(0)
+    start_row, start_col = int(height * 24/100), int(0)
     # Let's get the ending pixel coordinates (bottom right of cropped top)
-    end_row, end_col = int(height * end_q), int(width)
+    end_row, end_col = int(height * 43/100), int(width)
 
     cropped_img = image[start_row:end_row, start_col:end_col]
-    cv2.imshow("question", cropped_img)
-    cv2.waitKey(2000)
+    # cv2.imshow("question", cropped_img)
+    # cv2.waitKey(2000)
     cv2.imwrite("Screens/question.png", cropped_img)
+
+    question = apply_pytesseract("Screens/question.png")
+    linenumber = len(question.splitlines())
+    print(linenumber)
+    end_q = crop_config[linenumber - 1]
 
     for img in storepath[1:]:
         # GETTING ANSWERS
@@ -113,8 +116,8 @@ def crop_image(path, qnumbers):
         end_row, end_col = int(height * (end_q + 11 / 100)), int(width)
 
         cropped_img = image[start_row:end_row, start_col:end_col]
-        cv2.imshow(img, cropped_img)
-        cv2.waitKey(2000)
+        # cv2.imshow(img, cropped_img)
+        # cv2.waitKey(2000)
         cv2.imwrite(img, cropped_img)
 
         end_q = end_q + 11/100
@@ -173,16 +176,15 @@ def apply_pytesseract(input_image):
     return text
 
 
-def read_screen(lineno):
+def read_screen():
     """ Get OCR text //questions and options"""
     print("Taking the screen shot....")
-    screenshot_file = "Screens/to_ocr.png"
-    screenshot_file = screen_grab(screenshot_file)
+    screenshot_file = screen_grab()
 
     # temporary file used for testing
     # screenshot_file = "Screens/livequiz4.jpg"
 
-    question_and_answers = crop_image(screenshot_file, lineno)
+    question_and_answers = crop_image(screenshot_file)
 
     question = apply_pytesseract(question_and_answers[0])
     answers = []
@@ -356,10 +358,10 @@ def google_wiki(sim_ques, options, neg):
 
 
 
-def get_points_live(lineno):
+def get_points_live():
     """Main  control flow"""
     neg= False
-    question, options = read_screen(lineno)
+    question, options = read_screen()
     simq = ""
     points = []
     simq, neg = simplify_ques(question)
@@ -380,8 +382,8 @@ if __name__ == "__main__":
     load_json()
     while(1):
         keypressed = input(bcolors.WARNING + '\nGive the questions number of lines, or q to quit:\n' + bcolors.ENDC)
-        if keypressed in ['1', '2', '3']:
-            get_points_live(int(keypressed))
+        if keypressed is '5':
+            get_points_live()
             os.system("sudo umount phone/")
         elif keypressed == 'q':
             break
