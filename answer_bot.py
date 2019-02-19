@@ -45,6 +45,7 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
 # list of words to clean from the question during google search
 remove_words = []
 
@@ -267,6 +268,7 @@ def smart_answer(content,qwords):
 
 
 # use google to get wiki page
+@handle_exceptions
 def google_wiki(sim_ques, options, neg, return_dict):
     print("Searching ..." + options)
     # spinner = Halo(text='Googling and searching Wikipedia', spinner='dots2')
@@ -315,6 +317,7 @@ def google_wiki(sim_ques, options, neg, return_dict):
     # return points, maxo
 
 
+@handle_exceptions
 def get_answers(screenpath):
     """Main  control flow"""
     question, options = read_screen(screenpath)
@@ -330,6 +333,7 @@ def get_answers(screenpath):
 
     tasks = []
     for opt in options:
+        # searching in parallel
         proc = Process(target=google_wiki, args=(simpler_question, opt, negative_question, return_dict))
         proc.start()
         tasks.append(proc)
@@ -338,10 +342,12 @@ def get_answers(screenpath):
         t.join()
 
     points = return_dict.values()
+    # taking the max match value
     max_point = max(points)
     print("\n" + bcolors.UNDERLINE + question + bcolors.ENDC + "\n")
     for point, option in zip(points, options):
         if max_point == point:
+            # if this is the "correct" answer it will appear green
             option = bcolors.OKGREEN+option+bcolors.ENDC
         print(option + " { points: " + bcolors.BOLD + str(point*points_coeff) + bcolors.ENDC + " }\n")
 
@@ -351,18 +357,16 @@ def polling_dir():
     global screenno
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
-    print("Polling the directory...")
     if len(onlyfiles) > screenno:
         screenno = screenno + 1  # necessary if not deleting the file
         get_answers(mypath + onlyfiles[-1])
-
 
     threading.Timer(1, polling_dir).start()
 
 
 if __name__ == "__main__":
     load_settings()
-    print(bcolors.WARNING + "\nThe script is running, Ctrl-C to stop, don't forget to umount phone/\n" + bcolors.ENDC)
+    print(bcolors.WARNING + "\nThe script is running | Ctrl-C to stop | DON'T FORGET TO umount phone/\n" + bcolors.ENDC)
 
     polling_dir()
 
