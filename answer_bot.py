@@ -70,31 +70,21 @@ def handle_exceptions(func):
     return wrapper_decorator
 
 
-# loads all he settings
 def load_settings():
-    """ Loads a list of words to be removed and negative words from a json file to a variable.
-    It loads also questions from the previous games.
+    """ Loads all the configuration of the application.
+
+    It loads the words to be removed and the negative words from the steeings.json file;
+    it also mount the smartphone in the phone/ dir and count the number of screenshots present
     """
     global remove_words, negative_words, screenno
     remove_words = json.loads(open("Data/settings.json").read())["remove_words"]
     negative_words = json.loads(open("Data/settings.json").read())["negative_words"]
 
-    os.system("jmtpfs phone/")
+    if not os.listdir('phone/'):
+        # the directory is empty
+        os.system("jmtpfs phone/")
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
     screenno = len(onlyfiles)
-
-
-def screen_grab():
-    """ Takes a screenshot and saves it."""
-    # 31,228 485,620 co-ords of screenshot// left side of screen
-    # only if the image capture software has hgih quality
-    # os.system(" import -window MIMAX2  " + to_save)
-    os.system("jmtpfs phone/")
-    mypath = "phone/Archivio condiviso interno/DCIM/Screenshots/"
-    onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
-    # os.system("sudo umount phone/")
-    print(onlyfiles[-1])
-    return mypath + onlyfiles[-1] # -3,-8,-1
 
 
 def crop_image(path):
@@ -190,12 +180,6 @@ def apply_pytesseract(input_image):
 
 def read_screen(screenshot_file):
     """ Get OCR text //questions and options"""
-    # print("Taking the screen shot....")
-    # screenshot_file = screen_grab()
-
-    # temporary file used for testing
-    # screenshot_file = "Screens/livequiz4.jpg"
-
     question_and_answers = crop_image(screenshot_file)
 
     question = apply_pytesseract(question_and_answers[0])
@@ -326,44 +310,40 @@ def google_wiki(sim_ques, options, neg, return_dict):
     # spinner.succeed()
     # spinner.stop()
 
-    return_dict[options[0]] = points
+    return_dict[options] = points
     return
     # return points, maxo
 
 
-def get_points_live(screenpath):
+def get_answers(screenpath):
     """Main  control flow"""
-    neg= False
     question, options = read_screen(screenpath)
-    simq = ""
-    points = []
-    simq, neg = simplify_ques(question)
-    maxo=""
-    m=1
-    if neg:
-        m=-1
-    #points, maxo = google_wiki(simq, options, neg)
+    simpler_question, negative_question = simplify_ques(question)
+
+    # if the answer is negative the results are resversed we check for that one with less matches
+    points_coeff = 1
+    if negative_question:
+        points_coeff = -1
 
     manager = Manager()
     return_dict = manager.dict()
 
-    option1 = Process(target=google_wiki, args=(simq, options[0], neg, return_dict))
-    option2 = Process(target=google_wiki, args=(simq, options[1], neg, return_dict))
-    option3 = Process(target=google_wiki, args=(simq, options[2], neg, return_dict))
+    tasks = []
+    for opt in options:
+        proc = Process(target=google_wiki, args=(simpler_question, opt, negative_question, return_dict))
+        proc.start()
+        tasks.append(proc)
 
-    option1.start()
-    option2.start()
-    option3.start()
+    for t in tasks:
+        t.join()
 
-    option1.join()
-    option2.join()
-    option3.join()
-
+    points = return_dict.values()
+    max_point = max(points)
     print("\n" + bcolors.UNDERLINE + question + bcolors.ENDC + "\n")
-    for point, option in zip(return_dict.values(), options):
-        #if maxo == option.lower():
-         #   option=bcolors.OKGREEN+option+bcolors.ENDC
-        print(option + " { points: " + bcolors.BOLD + str(point*m) + bcolors.ENDC + " }\n")
+    for point, option in zip(points, options):
+        if max_point == point:
+            option = bcolors.OKGREEN+option+bcolors.ENDC
+        print(option + " { points: " + bcolors.BOLD + str(point*points_coeff) + bcolors.ENDC + " }\n")
 
 
 def polling_dir():
@@ -374,13 +354,12 @@ def polling_dir():
     print("Polling the directory...")
     if len(onlyfiles) > screenno:
         screenno = screenno + 1  # necessary if not deleting the file
-        get_points_live(mypath + onlyfiles[-1])
+        get_answers(mypath + onlyfiles[-1])
 
 
     threading.Timer(1, polling_dir).start()
 
 
-# menu// main func
 if __name__ == "__main__":
     load_settings()
     print(bcolors.WARNING + "\nThe script is running, Ctrl-C to stop, don't forget to umount phone/\n" + bcolors.ENDC)
