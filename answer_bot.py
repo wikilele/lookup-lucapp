@@ -29,6 +29,7 @@ import np
 import time, threading
 from os import listdir
 from os.path import isfile, join
+from multiprocessing import Process, Manager
 # import wx
 from halo import Halo
 
@@ -205,7 +206,7 @@ def read_screen(screenshot_file):
 
     print(question)
     print(answers)
-    exit(0)
+
     return question, answers
 
 
@@ -282,47 +283,52 @@ def smart_answer(content,qwords):
 
 
 # use google to get wiki page
-def google_wiki(sim_ques, options, neg):
-    print(sim_ques)
-    spinner = Halo(text='Googling and searching Wikipedia', spinner='dots2')
-    spinner.start()
+def google_wiki(sim_ques, options, neg, return_dict):
+    print("Searching ..." + options)
+    # spinner = Halo(text='Googling and searching Wikipedia', spinner='dots2')
+    # spinner.start()
     num_pages = 1
-    points = list()
+    points = 0
     content = ""
     maxo=""
     maxp=-sys.maxsize
     words = split_string(sim_ques)
-    for o in options:
+    o = options
 
-        o = o.lower()
-        original=o
-        o += ' wiki'
+    o = o.lower()
+    original=o
+    o += ' wiki'
 
-        # get google search results for option + 'wiki'
-        search_wiki = google.search(o, num_pages)
+    # get google search results for option + 'wiki'
+    search_wiki = google.search(o, num_pages)
 
-        if not search_wiki:
-            continue
+    if not search_wiki:
+        return_dict[options[0]] = points
+        return
 
-        link = search_wiki[0].link
-        content = get_page(link)
-        soup = BeautifulSoup(content,"lxml")
-        page = soup.get_text().lower()
+    link = search_wiki[0].link
+    content = get_page(link)
+    soup = BeautifulSoup(content,"lxml")
+    page = soup.get_text().lower()
 
-        temp=0
+    temp=0
 
-        for word in words:
-            temp = temp + page.count(word)
-        temp+=smart_answer(page, words)
-        if neg:
-            temp*=-1
-        points.append(temp)
-        if temp>maxp:
-            maxp=temp
-            maxo=original
-    spinner.succeed()
-    spinner.stop()
-    return points, maxo
+    for word in words:
+         temp = temp + page.count(word)
+    temp+=smart_answer(page, words)
+    if neg:
+        temp*=-1
+    points = temp
+    if temp>maxp:
+        maxp=temp
+        maxo=original
+
+    # spinner.succeed()
+    # spinner.stop()
+
+    return_dict[options[0]] = points
+    return
+    # return points, maxo
 
 
 def get_points_live(screenpath):
@@ -336,20 +342,40 @@ def get_points_live(screenpath):
     m=1
     if neg:
         m=-1
-    points, maxo = google_wiki(simq, options, neg)
+    #points, maxo = google_wiki(simq, options, neg)
+
+    manager = Manager()
+    return_dict = manager.dict()
+
+    option1 = Process(target=google_wiki, args=(simq, options[0], neg, return_dict))
+    option2 = Process(target=google_wiki, args=(simq, options[1], neg, return_dict))
+    option3 = Process(target=google_wiki, args=(simq, options[2], neg, return_dict))
+
+    option1.start()
+    option2.start()
+    option3.start()
+
+    option1.join()
+    option2.join()
+    option3.join()
+
     print("\n" + bcolors.UNDERLINE + question + bcolors.ENDC + "\n")
-    for point, option in zip(points, options):
-        if maxo == option.lower():
-            option=bcolors.OKGREEN+option+bcolors.ENDC
+    for point, option in zip(return_dict.values(), options):
+        #if maxo == option.lower():
+         #   option=bcolors.OKGREEN+option+bcolors.ENDC
         print(option + " { points: " + bcolors.BOLD + str(point*m) + bcolors.ENDC + " }\n")
 
 
 def polling_dir():
     """Polling the directory every tot seconds to check if a new screenshot has been added"""
+    global screenno
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
+    print("Polling the directory...")
     if len(onlyfiles) > screenno:
+        screenno = screenno + 1  # necessary if not deleting the file
         get_points_live(mypath + onlyfiles[-1])
+
 
     threading.Timer(1, polling_dir).start()
 
