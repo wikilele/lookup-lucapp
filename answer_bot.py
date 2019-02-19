@@ -26,6 +26,8 @@ import pyscreenshot as Imagegrab
 import sys
 import functools
 import np
+from os import listdir
+from os.path import isfile, join
 # import wx
 from halo import Halo
 
@@ -74,14 +76,18 @@ def load_json():
 def screen_grab(to_save):
     """ Takes a screenshot and saves it."""
     # 31,228 485,620 co-ords of screenshot// left side of screen
-    os.system(" import -window MIMAX2  " + to_save)
-
-
+    # os.system(" import -window MIMAX2  " + to_save)
+    os.system("jmtpfs phone/")
+    mypath = "phone/Archivio condiviso interno/DCIM/Screenshots/"
+    onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
+    # os.system("sudo umount phone/")
+    print(onlyfiles[-1])
+    return mypath + onlyfiles[-1]
 
 
 def crop_image(path, qnumbers):
     """Cropping the image to remove undesired stuff"""
-    crop_config = [41/ 100, 45 / 100, 46 / 100]
+    crop_config = [41/ 100, 45 / 100, 46/ 100]
     storepath = ["Screens/question.png", "Screens/answer1.png", "Screens/answer2.png", "Screens/answer3.png"]
 
     image = cv2.imread(path)
@@ -97,8 +103,8 @@ def crop_image(path, qnumbers):
     end_row, end_col = int(height * end_q), int(width)
 
     cropped_img = image[start_row:end_row, start_col:end_col]
-    # cv2.imshow("question", cropped_img)
-    # cv2.waitKey(2000)
+    cv2.imshow("question", cropped_img)
+    cv2.waitKey(2000)
     cv2.imwrite("Screens/question.png", cropped_img)
 
     for img in storepath[1:]:
@@ -107,8 +113,8 @@ def crop_image(path, qnumbers):
         end_row, end_col = int(height * (end_q + 11 / 100)), int(width)
 
         cropped_img = image[start_row:end_row, start_col:end_col]
-        # cv2.imshow(img, cropped_img)
-        # cv2.waitKey(2000)
+        cv2.imshow(img, cropped_img)
+        cv2.waitKey(2000)
         cv2.imwrite(img, cropped_img)
 
         end_q = end_q + 11/100
@@ -160,6 +166,7 @@ def apply_pytesseract(input_image):
 
         # load the image as a PIL/Pillow image, apply OCR, and then delete the temporary file
         text = pytesseract.image_to_string(Image.open(filename))
+        os.remove(filename)
 
     # os.remove(screenshot_file)
 
@@ -170,7 +177,7 @@ def read_screen(lineno):
     """ Get OCR text //questions and options"""
     print("Taking the screen shot....")
     screenshot_file = "Screens/to_ocr.png"
-    screen_grab(screenshot_file)
+    screenshot_file = screen_grab(screenshot_file)
 
     # temporary file used for testing
     # screenshot_file = "Screens/livequiz4.jpg"
@@ -192,7 +199,7 @@ def read_screen(lineno):
     # print(text)
     print(question)
     print(answers)
-    
+    exit(0)
     return question, answers
 
 
@@ -305,6 +312,9 @@ def google_wiki(sim_ques, options, neg):
         # get google search results for option + 'wiki'
         search_wiki = google.search(o, num_pages)
 
+        if not search_wiki:
+            continue
+
         link = search_wiki[0].link
         content = get_page(link)
         soup = BeautifulSoup(content,"lxml")
@@ -372,6 +382,7 @@ if __name__ == "__main__":
         keypressed = input(bcolors.WARNING + '\nGive the questions number of lines, or q to quit:\n' + bcolors.ENDC)
         if keypressed in ['1', '2', '3']:
             get_points_live(int(keypressed))
+            os.system("sudo umount phone/")
         elif keypressed == 'q':
             break
         else:
