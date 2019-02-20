@@ -133,54 +133,54 @@ def get_option(path, lineno, index):
     return imgpath
 
 
-def crop_image(path):
-    """Cropping the image to remove undesired stuff"""
-    crop_config = [41/100, 45/100, 46/100]
-    storepath = ["Screens/question.png", "Screens/answer1.png", "Screens/answer2.png", "Screens/answer3.png"]
-
-    image = cv2.imread(path)
-    height, width = image.shape[:2]
-
-    # The problem of this huge portion of code is that the question hasn't always the same lenght
-    # GETTING THE QUESTION
-    # Let's get the starting pixel coordiantes (top left of cropped top)
-    start_row, start_col = int(height * 24/100), int(0)
-    # Let's get the ending pixel coordinates (bottom right of cropped top)
-    end_row, end_col = int(height * 43/100), int(width)
-
-    cropped_img = image[start_row:end_row, start_col:end_col]
-    # cv2.imshow("question", cropped_img)
-    # cv2.waitKey(2000)
-    cv2.imwrite("Screens/question.png", cropped_img)
-
-    question = apply_pytesseract("Screens/question.png")
-    linenumber = len(question.splitlines())
-    print("lines in the question: " + str(linenumber))
-    end_q = crop_config[linenumber - 1]
-
-    for img in storepath[1:]:
-        # GETTING ANSWERS
-        start_row, start_col = int(height * end_q), int(0)
-        end_row, end_col = int(height * (end_q + 11 / 100)), int(width)
-
-        cropped_img = image[start_row:end_row, start_col:end_col]
-        # cv2.imshow(img, cropped_img)
-        # cv2.waitKey(2000)
-        cv2.imwrite(img, cropped_img)
-
-        end_q = end_q + 11/100
-
-    # cv2.destroyAllWindows()
-
-    # # GETTING THE QUESTION AND THE ASWERS
-    # # Let's get the starting pixel coordiantes (top left of cropped top)
-    # start_row, start_col = int(height * 27/100), int(0)
-    # # Let's get the ending pixel coordinates (bottom right of cropped top)
-    # end_row, end_col = int(height * 79/100), int(width)
-    # cropped_img = image[start_row:end_row, start_col:end_col]
-    # cv2.imwrite("Screens/cropped.png", cropped_img)
-
-    return question, storepath
+# def crop_image(path):
+#     """Cropping the image to remove undesired stuff"""
+#     crop_config = [41/100, 45/100, 46/100]
+#     storepath = ["Screens/question.png", "Screens/answer1.png", "Screens/answer2.png", "Screens/answer3.png"]
+#
+#     image = cv2.imread(path)
+#     height, width = image.shape[:2]
+#
+#     # The problem of this huge portion of code is that the question hasn't always the same lenght
+#     # GETTING THE QUESTION
+#     # Let's get the starting pixel coordiantes (top left of cropped top)
+#     start_row, start_col = int(height * 24/100), int(0)
+#     # Let's get the ending pixel coordinates (bottom right of cropped top)
+#     end_row, end_col = int(height * 43/100), int(width)
+#
+#     cropped_img = image[start_row:end_row, start_col:end_col]
+#     # cv2.imshow("question", cropped_img)
+#     # cv2.waitKey(2000)
+#     cv2.imwrite("Screens/question.png", cropped_img)
+#
+#     question = apply_pytesseract("Screens/question.png")
+#     linenumber = len(question.splitlines())
+#     print("lines in the question: " + str(linenumber))
+#     end_q = crop_config[linenumber - 1]
+#
+#     for img in storepath[1:]:
+#         # GETTING ANSWERS
+#         start_row, start_col = int(height * end_q), int(0)
+#         end_row, end_col = int(height * (end_q + 11 / 100)), int(width)
+#
+#         cropped_img = image[start_row:end_row, start_col:end_col]
+#         # cv2.imshow(img, cropped_img)
+#         # cv2.waitKey(2000)
+#         cv2.imwrite(img, cropped_img)
+#
+#         end_q = end_q + 11/100
+#
+#     # cv2.destroyAllWindows()
+#
+#     # # GETTING THE QUESTION AND THE ASWERS
+#     # # Let's get the starting pixel coordiantes (top left of cropped top)
+#     # start_row, start_col = int(height * 27/100), int(0)
+#     # # Let's get the ending pixel coordinates (bottom right of cropped top)
+#     # end_row, end_col = int(height * 79/100), int(width)
+#     # cropped_img = image[start_row:end_row, start_col:end_col]
+#     # cv2.imwrite("Screens/cropped.png", cropped_img)
+#
+#     return question, storepath
 
 
 def apply_pytesseract(input_image):
@@ -225,19 +225,19 @@ def get_and_search_option(i, screenpath, question, lineno, negative_question, re
     google_wiki(question, option, negative_question, return_dict)
 
 
-def read_screen(screenshot_file):
-    """ Get OCR text //questions and options"""
-    question, question_and_answers_paths = crop_image(screenshot_file)
-
-    answers = []
-    for qa in question_and_answers_paths[1:]:
-        answerx = apply_pytesseract(qa)
-        answers.append(answerx)
-
-    print(question)
-    print(answers)
-
-    return question, answers
+# def read_screen(screenshot_file):
+#     """ Get OCR text //questions and options"""
+#     question, question_and_answers_paths = crop_image(screenshot_file)
+#
+#     answers = []
+#     for qa in question_and_answers_paths[1:]:
+#         answerx = apply_pytesseract(qa)
+#         answers.append(answerx)
+#
+#     print(question)
+#     print(answers)
+#
+#     return question, answers
 
 
 def simplify_ques(question):
@@ -414,7 +414,7 @@ def polling_dir():
         screenno = screenno + 1  # necessary if not deleting the file
         solve_quiz(mypath + onlyfiles[-1])
 
-    threading.Timer(1, polling_dir).start()
+    threading.Timer(0.75, polling_dir).start()
 
 
 if __name__ == "__main__":
