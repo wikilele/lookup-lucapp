@@ -88,9 +88,54 @@ def load_settings():
     screenno = len(onlyfiles)
 
 
+def show_img(str, img):
+    cv2.imshow(str, img)
+    cv2.waitKey(2000)
+
+
+def get_question(path):
+    """Reading the question and guessing the line number."""
+    image = cv2.imread(path)
+    height, width = image.shape[:2]
+
+    # The problem of this huge portion of code is that the question hasn't always the same lenght
+    # Let's get the starting pixel coordiantes (top left of cropped top)
+    start_row, start_col = int(height * 24 / 100), int(0)
+    # Let's get the ending pixel coordinates (bottom right of cropped top)
+    end_row, end_col = int(height * 43 / 100), int(width)
+
+    cropped_img = image[start_row:end_row, start_col:end_col]
+    # show_img("question", cropped_img)
+    cv2.imwrite("Screens/question.png", cropped_img)
+
+    question = apply_pytesseract("Screens/question.png")
+    linenumber = len(question.splitlines())
+    print("lines in the question: " + str(linenumber))
+
+    return question, linenumber
+
+
+def get_option(path, lineno, index):
+    crop_config = [41 / 100, 45 / 100, 46 / 100]
+    end_q = crop_config[lineno - 1] + (index - 1)*11/100
+
+    image = cv2.imread(path)
+    height, width = image.shape[:2]
+
+    start_row, start_col = int(height * end_q), int(0)
+    end_row, end_col = int(height * (end_q + 11 / 100)), int(width)
+
+    cropped_img = image[start_row:end_row, start_col:end_col]
+    # show_img("option" + index, cropped_img)
+    imgpath = "Screens/answer" + str(index) + ".png"
+    cv2.imwrite(imgpath, cropped_img)
+
+    return imgpath
+
+
 def crop_image(path):
     """Cropping the image to remove undesired stuff"""
-    crop_config = [41/ 100, 45 / 100, 46/ 100]
+    crop_config = [41/100, 45/100, 46/100]
     storepath = ["Screens/question.png", "Screens/answer1.png", "Screens/answer2.png", "Screens/answer3.png"]
 
     image = cv2.imread(path)
@@ -110,7 +155,7 @@ def crop_image(path):
 
     question = apply_pytesseract("Screens/question.png")
     linenumber = len(question.splitlines())
-    print(linenumber)
+    print("lines in the question: " + str(linenumber))
     end_q = crop_config[linenumber - 1]
 
     for img in storepath[1:]:
@@ -125,7 +170,7 @@ def crop_image(path):
 
         end_q = end_q + 11/100
 
-    cv2.destroyAllWindows()
+    # cv2.destroyAllWindows()
 
     # # GETTING THE QUESTION AND THE ASWERS
     # # Let's get the starting pixel coordiantes (top left of cropped top)
@@ -135,27 +180,21 @@ def crop_image(path):
     # cropped_img = image[start_row:end_row, start_col:end_col]
     # cv2.imwrite("Screens/cropped.png", cropped_img)
 
-    return storepath
+    return question, storepath
 
 
 def apply_pytesseract(input_image):
     """Convert the image to black and white and apply pytesseract to get the text"""
-    # prepare argparse
-    ap = argparse.ArgumentParser(description='HQ_Bot')
-    ap.add_argument("-i", "--image", required=False, default=input_image, help="path to input image to be OCR'd")
-    ap.add_argument("-p", "--preprocess", type=str, default="blur", help="type of preprocessing to be done")
-    args = vars(ap.parse_args())
 
     # load the image
-    image = cv2.imread(args["image"])
+    image = cv2.imread(input_image)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     kernel = np.ones((1, 1), np.uint8)
     gray = cv2.dilate(gray, kernel, iterations=1)
     gray = cv2.erode(gray, kernel, iterations=1)
 
-    gray_thresh = cv2.threshold(gray, 0, 255,
-                             cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+    gray_thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
     gray_blur = cv2.medianBlur(gray, 3)
 
     # store grayscale image as a temp file to apply OCR
@@ -179,13 +218,19 @@ def apply_pytesseract(input_image):
     return text
 
 
+def get_and_search_option(i, screenpath, question, lineno, negative_question, return_dict):
+    optionpath = get_option(screenpath, lineno, i)
+    option = apply_pytesseract(optionpath)
+
+    google_wiki(question, option, negative_question, return_dict)
+
+
 def read_screen(screenshot_file):
     """ Get OCR text //questions and options"""
-    question_and_answers = crop_image(screenshot_file)
+    question, question_and_answers_paths = crop_image(screenshot_file)
 
-    question = apply_pytesseract(question_and_answers[0])
     answers = []
-    for qa in question_and_answers[1:]:
+    for qa in question_and_answers_paths[1:]:
         answerx = apply_pytesseract(qa)
         answers.append(answerx)
 
@@ -270,7 +315,7 @@ def smart_answer(content,qwords):
 # use google to get wiki page
 @handle_exceptions
 def google_wiki(sim_ques, options, neg, return_dict):
-    print("Searching ..." + options)
+    print("Searching ..." + sim_ques)
     # spinner = Halo(text='Googling and searching Wikipedia', spinner='dots2')
     # spinner.start()
     num_pages = 1
@@ -317,10 +362,11 @@ def google_wiki(sim_ques, options, neg, return_dict):
     # return points, maxo
 
 
-@handle_exceptions
-def get_answers(screenpath):
+#@handle_exceptions
+def solve_quiz(screenpath):
     """Main  control flow"""
-    question, options = read_screen(screenpath)
+    question, lineno = get_question(screenpath)
+    # question, options = read_screen(screenpath)
     simpler_question, negative_question = simplify_ques(question)
 
     # if the answer is negative the results are resversed we check for that one with less matches
@@ -332,11 +378,18 @@ def get_answers(screenpath):
     return_dict = manager.dict()
 
     tasks = []
-    for opt in options:
+    for i in [1, 2, 3]:
         # searching in parallel
-        proc = Process(target=google_wiki, args=(simpler_question, opt, negative_question, return_dict))
+        proc = Process(target=get_and_search_option, args=(i, screenpath, simpler_question, lineno,
+                                                           negative_question, return_dict))
         proc.start()
         tasks.append(proc)
+
+    # for opt in options:
+    #     # searching in parallel
+    #     proc = Process(target=google_wiki, args=(simpler_question, opt, negative_question, return_dict))
+    #     proc.start()
+    #     tasks.append(proc)
 
     for t in tasks:
         t.join()
@@ -345,7 +398,7 @@ def get_answers(screenpath):
     # taking the max match value
     max_point = max(points)
     print("\n" + bcolors.UNDERLINE + question + bcolors.ENDC + "\n")
-    for point, option in zip(points, options):
+    for point, option in zip(points, return_dict.keys()):
         if max_point == point:
             # if this is the "correct" answer it will appear green
             option = bcolors.OKGREEN+option+bcolors.ENDC
@@ -359,7 +412,7 @@ def polling_dir():
 
     if len(onlyfiles) > screenno:
         screenno = screenno + 1  # necessary if not deleting the file
-        get_answers(mypath + onlyfiles[-1])
+        solve_quiz(mypath + onlyfiles[-1])
 
     threading.Timer(1, polling_dir).start()
 
