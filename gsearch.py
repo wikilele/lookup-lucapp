@@ -4,12 +4,26 @@ import urllib.request as urllib2
 from bs4 import BeautifulSoup
 from google import google
 import re
+import functools
 
 # list of words to clean from the question during google search
 remove_words = json.loads(open("Data/settings.json").read())["remove_words"]
 
 # negative words
 negative_words = json.loads(open("Data/settings.json").read())["negative_words"]
+
+
+def handle_exceptions(func):
+    """ This function is used as a decorator to wrap the implemented method avoiding weird crashes"""
+    @functools.wraps(func)  # supports introspection
+    def wrapper_decorator(*args, **kwargs):
+        try:
+            value = func(*args, **kwargs)
+            return value
+        except Exception as e:
+            print("Something went wrong ...")
+            print(e)
+    return wrapper_decorator
 
 
 class ParsedQuestion:
@@ -64,8 +78,7 @@ def get_page(link):
         return ''
 
 
-# use google to get wiki page
-# @handle_exceptions
+@handle_exceptions
 def google_wiki(sim_ques, option, neg, return_dict):
     """Searches the question and the single option on google and wikipedia.
 
@@ -76,10 +89,10 @@ def google_wiki(sim_ques, option, neg, return_dict):
     option = option[1:] if option[0].lower() in remove_words else option
 
     words = sim_ques.simplyfied.split()
-    # force google to search for the exact match
-    searched_option = '\"' + option.lower() + '\"'
+    # TODO force google to search for the exact match ??? using quotes
+    searched_option = option.lower()
 
-    searched_option += ' wiki'
+    # searched_option += ' wiki'
 
     # get google search results for option + 'wiki'
     search_wiki = google.search(searched_option, pages=1, lang="it")

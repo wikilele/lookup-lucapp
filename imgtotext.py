@@ -6,8 +6,6 @@ import os
 import np
 
 
-
-
 def show_img(title, img):
     """"Shows an image (Usefull for debugging)."""
     cv2.imshow(title, img)
@@ -65,15 +63,6 @@ def get_option(path, lineno, index):
     cv2.imwrite(imgpath, cropped_img)
 
     return imgpath
-
-
-# # GETTING THE QUESTION AND THE ASWERS
-# # Let's get the starting pixel coordiantes (top left of cropped top)
-# start_row, start_col = int(height * 27/100), int(0)
-# # Let's get the ending pixel coordinates (bottom right of cropped top)
-# end_row, end_col = int(height * 79/100), int(width)
-# cropped_img = image[start_row:end_row, start_col:end_col]
-# cv2.imwrite("Screens/cropped.png", cropped_img)
 
 
 def apply_pytesseract(input_image):

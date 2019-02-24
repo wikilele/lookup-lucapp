@@ -10,15 +10,11 @@
 
 
 # answering bot for Live Quiz
-
-import functools
-
 from multiprocessing import Process, Manager
-
 from telegram.ext import *
-
 from imgtotext import *
 from gsearch import *
+
 
 # for terminal colors 
 class bcolors:
@@ -32,40 +28,14 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 
-
-
-
-def handle_exceptions(func):
-    """ This function is used as a decorator to wrap the implemented method avoiding weird crashes"""
-    @functools.wraps(func)  # supports introspection
-    def wrapper_decorator(*args, **kwargs):
-        try:
-            value = func(*args, **kwargs)
-            return value
-        except Exception as e:
-            print("Something went wrong ...")
-            print(e)
-    return wrapper_decorator
-
-
 def load_settings():
     """ Loads all the configuration of the application.
 
-    It loads the words to be removed and the negative words from the settings.json file;
-    it also gets and returns the token for the telegram bot.
+    It gets and returns the token for the telegram bot.
     """
-    # global remove_words, negative_words
-    # remove_words = json.loads(open("Data/settings.json").read())["remove_words"]
-    # negative_words = json.loads(open("Data/settings.json").read())["negative_words"]
-
-    # get the telegram bot toekn
+    # get the telegram bot token
     token = json.loads(open("Data/bottoken.json").read())["token"]
     return token
-
-# MODULE GET TEXT FROM IMAGE
-
-
-
 
 
 def get_and_search_option(i, screenpath, question, lineno, negative_question, return_dict):
@@ -77,15 +47,8 @@ def get_and_search_option(i, screenpath, question, lineno, negative_question, re
 
     google_wiki(question, option, negative_question, return_dict)
 
-# MODULE SEARCH
 
-
-
-
-
-# MODULE MAIN
-
-# @handle_exceptions
+@handle_exceptions
 def solve_quiz(screenpath):
     """Given a path to a valid screenshot it tries to solve the quiz in parallel."""
     question, lineno = get_question(screenpath)
@@ -136,9 +99,9 @@ def screen(bot, update):
     """Takes the screenshot from the telegram bot chat, saves it and calls the solve function."""
     chat_id = update.message.chat_id
     file_id = update.message.photo[-1].file_id
-    newFile = bot.getFile(file_id)
+    newfile = bot.getFile(file_id)
     imgpath = "Screens/screenshot.png"
-    newFile.download(imgpath)
+    newfile.download(imgpath)
 
     bot.send_message(chat_id, text="Screenshot received")
 
@@ -159,7 +122,7 @@ def main(ttoken):
 
 if __name__ == '__main__':
     ttoken = load_settings()
-    solve_quiz("Screens/livequiz1.jpg")
+    solve_quiz("Screens/livequiz0.jpg")
     exit(0)
 
     print(bcolors.WARNING + "\nThe script/bot is running | Ctrl-C to stop \n" + bcolors.ENDC)
