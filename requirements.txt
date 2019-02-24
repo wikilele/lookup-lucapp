@@ -1,12 +1,10 @@
-unidecode
-future
-selenium
-simplejson
+
 Pillow
 pytesseract
 beautifulsoup4
-
 lxml
 wikipedia
 git+https://github.com/abenassi/Google-Search-API/
-
+python-telegram-bot
+opencv-python
+np

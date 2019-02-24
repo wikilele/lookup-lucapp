@@ -1,14 +1,4 @@
 
-
-# TODO:
-# * Implement normalize func
-# * Attempt to google wiki \"...\" part of question
-# * Rid of common appearances in 3 options
-# * Automate screenshot process
-# //Script is in working condition at all times
-# //TODO is for improving accuracy
-
-
 # answering bot for Live Quiz
 from multiprocessing import Process, Manager
 from telegram.ext import *
