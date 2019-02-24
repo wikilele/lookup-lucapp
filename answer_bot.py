@@ -28,6 +28,7 @@ import time, threading
 from os import listdir
 from os.path import isfile, join
 from multiprocessing import Process, Manager
+from threading import Thread
 # import wx
 from halo import Halo
 
@@ -81,6 +82,8 @@ def load_settings():
     # get the telegram bot toekn
     token = json.loads(open("Data/bottoken.json").read())["token"]
     return token
+
+# MODULE GET TEXT FROM IMAGE
 
 
 def show_img(title, img):
@@ -193,23 +196,46 @@ def get_and_search_option(i, screenpath, question, lineno, negative_question, re
 
     google_wiki(question, option, negative_question, return_dict)
 
+# MODULE SEARCH
+
+
+class ParsedQuestion:
+    """Holding some elements extracted from the question"""
+    def __init__(self, originalq, proper_nouns, simplyfiedq):
+        self.original = originalq
+        self.proper_nouns = proper_nouns
+        self.simplyfied = simplyfiedq
+
 
 def simplify_ques(question):
     """Simplify question and remove the words in the setting.json"""
-    neg = False
+    question = question.strip('?')
+    splitted_question = question.split()
+    # this line should remove the first words like 'Quale' 'Chi' 'In'
+    splitted_question = splitted_question[1:] if splitted_question[0].lower() in remove_words else splitted_question
+
+    # proper noun is a list with elements like "Marco Rossi" or "Title of a Song" or "GPRS"
+    # this line catches element between quotes
+    proper_nouns = re.findall('"([^"]*)"', " ".join(splitted_question))
+    for i, _ in enumerate(splitted_question):
+        # check for acronyms "NBA"
+        if splitted_question[i].isupper():
+            proper_nouns.append(splitted_question[i])
+            continue
+        # if two subsequent words has the first letter uppercased they probably refers to a proper nuon
+        try:
+            if splitted_question[i][0].isupper() and splitted_question[i + 1][0].isupper():
+                proper_nouns.append(splitted_question[i] + " " + splitted_question[i + 1])
+        except IndexError:
+            pass
+
     qwords = question.lower().split()
     # check if the question is a negative one
-    if [i for i in qwords if i in negative_words]:
-        neg = True
-    cleanwords = [word for word in qwords if word.lower() not in remove_words]
-    temp = ' '.join(cleanwords)
-    clean_question = ""
-    #remove ?
-    for ch in temp:
-        if ch!="?" or ch!="\"" or ch!="\'":
-            clean_question=clean_question+ch
+    neg = True if [i for w in qwords if w in negative_words] else False
 
-    return clean_question.lower(), neg
+    cleanwords = [word for word in qwords if word not in remove_words]
+
+    return ParsedQuestion(question, proper_nouns, " ".join(cleanwords)), neg
 
 
 # get web page
@@ -224,51 +250,25 @@ def get_page(link):
         return ''
 
 
-# split the string
-def split_string(source):
-    splitlist = ",!-.;/?@ #"
-    output = []
-    atsplit = True
-    for char in source:
-        if char in splitlist:
-            atsplit = True
-        else:
-            if atsplit:
-                output.append(char)
-                atsplit = False
-            else:
-                output[-1] = output[-1] + char
-    return output
-
-
-# answer by combining two words
-def smart_answer(content, qwords):
-    zipped = zip(qwords, qwords[1:])
-
-    points = 0
-    for el in zipped:
-        if content.count(el[0]+" "+el[1]) != 0:
-            points += 1000
-    return points
-
-
 # use google to get wiki page
-@handle_exceptions
+# @handle_exceptions
 def google_wiki(sim_ques, option, neg, return_dict):
-    """Searches the question and the single option on google and wikipedia."""
-    print("Searching ..." + sim_ques + "  " + option)
-    # spinner = Halo(text='Googling and searching Wikipedia', spinner='dots2')
-    # spinner.start()
-    num_pages = 1
-    points = 0
+    """Searches the question and the single option on google and wikipedia.
 
-    words = split_string(sim_ques)
-    searched_option = option.lower()
+    sim_ques must be a ParsedQuestion object.
+    """
+    print("Searching ..." + sim_ques.original + "?  " + option)
+    points = 0
+    option = option[1:] if option[0].lower() in remove_words else option
+
+    words = sim_ques.simplyfied.split()
+    # force google to search for the exact match
+    searched_option = '\"' + option.lower() + '\"'
 
     searched_option += ' wiki'
 
     # get google search results for option + 'wiki'
-    search_wiki = google.search(searched_option, num_pages, lang="it")
+    search_wiki = google.search(searched_option, pages=1, lang="it")
 
     if not search_wiki:
         return_dict[option] = points
@@ -281,25 +281,19 @@ def google_wiki(sim_ques, option, neg, return_dict):
 
     temp = 0
     for word in words:
-         temp = temp + page.count(word)
-
-    temp += smart_answer(page, words)
-
-    if neg:
-        temp *= -1
+        temp = temp + page.count(word)
+    for pn in sim_ques.proper_nouns:
+        temp = temp + page.count(pn.lower()) * 10
 
     points = temp
 
-    # spinner.succeed()
-    # spinner.stop()
-
-    return_dict[option] = points
+    return_dict[option] = points if not neg else -points
     return
 
 
+# MODULE MAIN
 
-
-@handle_exceptions
+# @handle_exceptions
 def solve_quiz(screenpath):
     """Given a path to a valid screenshot it tries to solve the quiz in parallel."""
     question, lineno = get_question(screenpath)
@@ -373,7 +367,7 @@ def main(ttoken):
 
 if __name__ == '__main__':
     ttoken = load_settings()
-    solve_quiz("Screens/livequiz3.jpg")
+    solve_quiz("Screens/livequiz1.jpg")
     exit(0)
 
     print(bcolors.WARNING + "\nThe script/bot is running | Ctrl-C to stop \n" + bcolors.ENDC)
