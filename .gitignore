@@ -1,2 +1,7 @@
-Screens
+
+.idea/
+__pycache__/
+
+
+Screens/*
 Data/bottoken.json
