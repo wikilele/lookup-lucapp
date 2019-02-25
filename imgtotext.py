@@ -1,4 +1,10 @@
 
+""" Takes a scrrenshot of the app and reads it.
+
+This module uses pytesseract to read the question and the option.
+The module functions require the path of the screenshot and the return the readed text.
+"""
+
 from PIL import Image
 import pytesseract
 import cv2

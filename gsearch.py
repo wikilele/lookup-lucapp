@@ -1,3 +1,10 @@
+"""Search the question and one given option.
+
+The module searches the question and one option; it then tries to count the number of matches.
+
+TODO improve the accuracy of the seach
+"""
+
 
 import json
 import urllib.request as urllib2

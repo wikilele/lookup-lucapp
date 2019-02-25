@@ -1,3 +1,6 @@
+"""Telegram bot used to get the screenshot from the smartphone and pass it to the solver function.
+"""
+
 
 from telegram.ext import *
 from telegram import *

@@ -1,5 +1,8 @@
+""" Takes the screenshot and tries to guess the answer.
 
-# answering bot for Live Quiz
+Each option is red and searched in parallel.
+"""
+
 from multiprocessing import Process, Manager
 from imgtotext import *
 from gsearch import *
