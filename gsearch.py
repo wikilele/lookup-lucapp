@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from google import google
 import re
 import functools
+import sys
 
 # list of words to clean from the question during google search
 remove_words = json.loads(open("Data/settings.json").read())["remove_words"]
@@ -74,7 +75,8 @@ def get_page(link):
         req = urllib2.Request(link, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)'})
         html = urllib2.urlopen(req).read()
         return html
-    except (urllib2.URLError, urllib2.HTTPError, ValueError):
+    # TODO have a better exception handing here
+    except (urllib2.URLError, urllib2.HTTPError, ValueError) or Exception:
         return ''
 
 
@@ -97,8 +99,10 @@ def google_wiki(sim_ques, option, neg, return_dict):
     # get google search results for option + 'wiki'
     search_wiki = google.search(searched_option, pages=1, lang="it")
 
-    if not search_wiki:
-        return_dict[option] = points
+    if not search_wiki or not search_wiki[0].link:
+        # maxint was removed
+        # not so clear
+        return_dict[option] = -sys.maxsize if neg else sys.maxsize
         return
 
     link = search_wiki[0].link
