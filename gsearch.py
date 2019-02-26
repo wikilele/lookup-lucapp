@@ -1,3 +1,4 @@
+
 """Search the question and one given option.
 
 The module searches the question and one option; it then tries to count the number of matches.
@@ -58,7 +59,7 @@ def simplify_ques(question):
         if splitted_question[i].isupper():
             proper_nouns.append(splitted_question[i])
             continue
-        # if two subsequent words has the first letter uppercased they probably refers to a proper nuon
+        # if two subsequent words has the first letter uppercased they probably refers to a proper noun
         try:
             if splitted_question[i][0].isupper() and splitted_question[i + 1][0].isupper():
                 proper_nouns.append(splitted_question[i] + " " + splitted_question[i + 1])
@@ -102,7 +103,6 @@ def google_wiki(sim_ques, option, neg, return_dict):
     searched_option = option.lower()
 
     # searched_option += ' wiki'
-
     # get google search results for option + 'wiki'
     search_wiki = google.search(searched_option, pages=1, lang="it")
 
@@ -113,17 +113,15 @@ def google_wiki(sim_ques, option, neg, return_dict):
         return
 
     link = search_wiki[0].link
+
     content = get_page(link)
     soup = BeautifulSoup(content, "lxml")
     page = soup.get_text().lower()
 
-    temp = 0
     for word in words:
-        temp = temp + page.count(word)
+        points = points + page.count(word)
     for pn in sim_ques.proper_nouns:
-        temp = temp + page.count(pn.lower()) * 10
-
-    points = temp
+        points = points + page.count(pn.lower()) * 10
 
     return_dict[option] = points if not neg else -points
     return

@@ -1,3 +1,4 @@
+
 """ Takes the screenshot and tries to guess the answer.
 
 Each option is red and searched in parallel.
