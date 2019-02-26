@@ -31,7 +31,7 @@ def get_and_search_option(i, screenpath, question, lineno, negative_question, re
     google_wiki(question, option, negative_question, return_dict)
 
 
-@handle_exceptions
+@mydecorators.handle_exceptions
 def solve_quiz(screenpath):
     """Given a path to a valid screenshot it tries to solve the quiz in parallel."""
     question, lineno = get_question(screenpath)

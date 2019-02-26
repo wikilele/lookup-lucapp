@@ -1,22 +1,10 @@
 
-
 from answer_bot import solve_quiz, bcolors
 import os
-import time
+import mydecorators
 
 
-def timeit(method):
-    def timed(*args, **kw):
-        ts = time.time()
-        result = method(*args, **kw)
-        te = time.time()
-
-        print("Time spent " + str(te-ts))
-        return result
-
-    return timed
-
-@timeit
+@mydecorators.timeit("main")
 def main():
     imgpath = "Screens/screen.png"
     os.system("adb exec-out screencap -p > " + imgpath)
@@ -26,4 +14,13 @@ def main():
 if __name__ == '__main__':
     os.system("adb devices")
 
-    main()
+    while True:
+        keypressed = input(bcolors.WARNING +
+                            '\nPress s to screenshot live game, sampq to run against sample questions or q to quit:\n'
+                            + bcolors.ENDC)
+        if keypressed == 's':
+            main()
+        elif keypressed == 'q':
+            break
+        else:
+            print(bcolors.FAIL + "\nUnknown input" + bcolors.ENDC)

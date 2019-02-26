@@ -12,7 +12,7 @@ import urllib.request as urllib2
 from bs4 import BeautifulSoup
 from google import google
 import re
-import functools
+import mydecorators
 import sys
 
 # list of words to clean from the question during google search
@@ -20,19 +20,6 @@ remove_words = json.loads(open("Data/settings.json").read())["remove_words"]
 
 # negative words
 negative_words = json.loads(open("Data/settings.json").read())["negative_words"]
-
-
-def handle_exceptions(func):
-    """ This function is used as a decorator to wrap the implemented method avoiding weird crashes"""
-    @functools.wraps(func)  # supports introspection
-    def wrapper_decorator(*args, **kwargs):
-        try:
-            value = func(*args, **kwargs)
-            return value
-        except Exception as e:
-            print("Something went wrong ...")
-            print(e)
-    return wrapper_decorator
 
 
 class ParsedQuestion:
@@ -88,7 +75,8 @@ def get_page(link):
         return ''
 
 
-@handle_exceptions
+@mydecorators.handle_exceptions
+@mydecorators.timeit("googlesearch")
 def google_wiki(sim_ques, option, neg, return_dict):
     """Searches the question and the single option on google and wikipedia.
 
