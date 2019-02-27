@@ -1,7 +1,7 @@
 
 from answer_bot import solve_quiz, bcolors
 import os
-import mydecorators
+import modules.mydecorators as mydecorators
 
 
 @mydecorators.timeit("main")
@@ -15,8 +15,7 @@ if __name__ == '__main__':
     os.system("adb devices")
 
     while True:
-        keypressed = input(bcolors.WARNING +
-                            '\nPress s to screenshot live game, sampq to run against sample questions or q to quit:\n'
+        keypressed = input(bcolors.WARNING + '\nPress s to screenshot live game  or q to quit:\n'
                             + bcolors.ENDC)
         if keypressed == 's':
             main()

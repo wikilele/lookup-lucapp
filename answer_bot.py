@@ -5,9 +5,9 @@ Each option is red and searched in parallel.
 """
 
 from multiprocessing import Process, Manager
-from imgtotext import *
-from gsearch import *
-
+from modules.imgtotext import *
+from modules.gsearch import *
+from threading import Thread
 
 # for terminal colors 
 class bcolors:
@@ -28,7 +28,9 @@ def get_and_search_option(i, screenpath, question, lineno, negative_question, re
     optionpath = get_option(screenpath, lineno, i)
     option = apply_pytesseract(optionpath)
 
-    google_wiki(question, option, negative_question, return_dict)
+    points = google_wiki(question, option, negative_question)
+
+    return_dict[option] = points
 
 
 @mydecorators.handle_exceptions
@@ -66,8 +68,9 @@ def solve_quiz(screenpath):
         if max_point == point:
             return_option = option
             # if this is the "correct" answer it will appear green
-            option = bcolors.OKGREEN+option+bcolors.ENDC
+            option = bcolors.OKGREEN + option + bcolors.ENDC
 
         print(option + " { points: " + bcolors.BOLD + str(point*points_coeff) + bcolors.ENDC + " }\n")
 
+    print("---------------------------------------")
     return return_option

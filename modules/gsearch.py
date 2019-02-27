@@ -12,7 +12,7 @@ import urllib.request as urllib2
 from bs4 import BeautifulSoup
 from google import google
 import re
-import mydecorators
+import modules.mydecorators as mydecorators
 import sys
 
 # list of words to clean from the question during google search
@@ -75,33 +75,15 @@ def get_page(link):
         return ''
 
 
-@mydecorators.handle_exceptions
-@mydecorators.timeit("googlesearch")
-def google_wiki(sim_ques, option, neg, return_dict):
-    """Searches the question and the single option on google and wikipedia.
-
-    sim_ques must be a ParsedQuestion object.
-    """
-    print("Searching ..." + sim_ques.original + "?  " + option)
-    points = 0
-    option = option[1:] if option[0].lower() in remove_words else option
-
-    words = sim_ques.simplyfied.split()
-    # TODO force google to search for the exact match ??? using quotes
-    searched_option = option.lower()
-
+@mydecorators.timeit("actualsearch")
+def search(searched_option):
     # searched_option += ' wiki'
     # get google search results for option + 'wiki'
-    search_wiki = google.search(searched_option, pages=1, lang="it")
+    return google.search(searched_option, pages=1, lang="it")
 
-    if not search_wiki or not search_wiki[0].link:
-        # maxint was removed
-        # not so clear
-        return_dict[option] = -sys.maxsize if neg else sys.maxsize
-        return
 
-    link = search_wiki[0].link
-
+def get_score(link, words, sim_ques):
+    points = 0
     content = get_page(link)
     soup = BeautifulSoup(content, "lxml")
     page = soup.get_text().lower()
@@ -111,6 +93,36 @@ def google_wiki(sim_ques, option, neg, return_dict):
     for pn in sim_ques.proper_nouns:
         points = points + page.count(pn.lower()) * 10
 
-    return_dict[option] = points if not neg else -points
-    return
+    return points
+
+
+@mydecorators.handle_exceptions
+@mydecorators.timeit("googlesearch")
+def google_wiki(sim_ques, option, neg):
+    """Searches the question and the single option on google and wikipedia.
+
+    sim_ques must be a ParsedQuestion object.
+    """
+    print("Searching ..." + sim_ques.original + "?  " + option)
+
+    # removing the first word like 'Il' 'Una'
+    option = option.split()
+    option = option[1:] if option[0].lower() in remove_words else option
+    option = " ".join(option)
+
+    words = sim_ques.simplyfied.split()
+    # TODO force google to search for the exact match ??? using quotes
+    searched_option = option.lower()
+
+    search_wiki = search(searched_option)
+
+    if not search_wiki or not search_wiki[0].link:
+        # maxint was removed
+        # not so clear
+        return -sys.maxsize if neg else sys.maxsize
+
+    points = get_score(search_wiki[0].link, words, sim_ques)
+
+    return points if not neg else -points
+
 

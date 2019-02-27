@@ -1,10 +1,11 @@
 #
 # !!! THIS CODE ID DEPRECATED !!!
+# Since it's my first telegram bot I decided to keep it
 #
 
 from telegram.ext import *
 from telegram import *
-from gsearch import *
+from modules.gsearch import *
 from answer_bot import solve_quiz
 
 

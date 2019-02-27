@@ -23,8 +23,8 @@ def timeit(text):
             ts = time.time()
             result = func(*args, **kw)
             te = time.time()
-
-            print(text + "::time spent " + str(te-ts) + " seconds")
+            timeresult = te-ts
+            print(f"{text}::time spent {timeresult:.2f} seconds")
             return result
 
         return timed

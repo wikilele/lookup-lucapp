@@ -10,7 +10,7 @@ import pytesseract
 import cv2
 import os
 import np
-import mydecorators
+import modules.mydecorators as mydecorators
 
 def show_img(title, img):
     """"Shows an image (Usefull for debugging)."""
