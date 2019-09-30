@@ -5,3 +5,5 @@ __pycache__/
 
 Data/bottoken.json
 compile.py
+/java-app/lookup-lucapp/nbproject/private/
+/java-app/lookup-lucapp/build/
