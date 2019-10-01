@@ -3,20 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package lookup.lucapp;
+package lookuplucapp;
 
 /**
  *
  * @author leonardo
  */
-public class Bot {
-    
+public interface IBrowser {
     /**
-     * @param screeshotPath the location of the screenshot
-     * @return the answer
+     * @return a fitting value //TODO check it better
      */
-    public String solveQuiz(String screeshotPath){
-        return "quiz-solved";
-    }
-    
+    public int search(String question, String option);
 }

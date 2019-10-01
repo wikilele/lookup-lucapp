@@ -3,16 +3,20 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package lookup.lucapp;
+package lookuplucapp;
 
 /**
  *
  * @author leonardo
  */
-public class SimpleBrowser implements IBrowser {
+public class ImageToTextService {
     
-    public int search(String question, String option){
-        return -1;
+    public String getQuestion(){
+        return "question";
     }
     
+    
+    public String getOption(int optionIndex){
+        return "option" + optionIndex;
+    }
 }

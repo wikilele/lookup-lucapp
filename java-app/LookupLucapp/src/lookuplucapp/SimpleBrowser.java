@@ -3,15 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package lookup.lucapp;
+package lookuplucapp;
 
 /**
  *
  * @author leonardo
  */
-public interface IBrowser {
-    /**
-     * @return a fitting value //TODO check it better
-     */
-    public int search(String question, String option);
+public class SimpleBrowser implements IBrowser {
+    
+    public int search(String question, String option){
+        return -1;
+    }
+    
 }
