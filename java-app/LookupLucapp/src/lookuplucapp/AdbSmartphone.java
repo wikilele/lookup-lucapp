@@ -35,13 +35,14 @@ public class AdbSmartphone implements ISmartphone {
     }
     
     public boolean connect(){
+        execBashCommand( "adb", "devices");
         return true;
     }
         
 
     public String takeScreenshot(){
  
-        execBashCommand("python3.6","screenshot.py", imgPath);
+        execBashCommand("/bin/bash","-l", "-c", "adb exec-out screencap -p >" + imgPath);
         return imgPath;
     }
 
