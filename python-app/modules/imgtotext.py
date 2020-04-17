@@ -33,9 +33,9 @@ def get_question(path):
 
     cropped_img = image[start_row:end_row, start_col:end_col]
     # show_img("question", cropped_img)
-    cv2.imwrite("Screens/question.png", cropped_img)
+    cv2.imwrite("screens/question.png", cropped_img)
 
-    question = apply_pytesseract("Screens/question.png")
+    question = apply_pytesseract("screens/question.png")
     question = question.splitlines()
     linenumber = len(question)
     print("lines in the question: " + str(linenumber))
@@ -65,7 +65,7 @@ def get_option(path, lineno, index):
 
     cropped_img = image[start_row:end_row, start_col:end_col]
     # show_img("option" + index, cropped_img)
-    imgpath = "Screens/answer" + str(index) + ".png"
+    imgpath = "screens/answer" + str(index) + ".png"
     cv2.imwrite(imgpath, cropped_img)
 
     return imgpath
@@ -86,7 +86,7 @@ def apply_pytesseract(input_image):
     gray_blur = cv2.medianBlur(gray, 3)
 
     # store grayscale image as a temp file to apply OCR
-    filename = "Screens/{}blur.png".format(os.getpid())
+    filename = "screens/{}blur.png".format(os.getpid())
     cv2.imwrite(filename, gray_blur)
 
     # load the image as a PIL/Pillow image, apply OCR, and then delete the temporary file
@@ -94,7 +94,7 @@ def apply_pytesseract(input_image):
     os.remove(filename)
 
     if not text:
-        filename = "Screens/{}thresh.png".format(os.getpid())
+        filename = "screens/{}thresh.png".format(os.getpid())
         cv2.imwrite(filename, gray_thresh)
 
         # load the image as a PIL/Pillow image, apply OCR, and then delete the temporary file

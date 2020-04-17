@@ -16,10 +16,10 @@ import modules.mydecorators as mydecorators
 import sys
 
 # list of words to clean from the question during google search
-remove_words = json.loads(open("Data/settings.json").read())["remove_words"]
+remove_words = json.loads(open("data/settings.json").read())["remove_words"]
 
 # negative words
-negative_words = json.loads(open("Data/settings.json").read())["negative_words"]
+negative_words = json.loads(open("data/settings.json").read())["negative_words"]
 
 
 class ParsedQuestion:
