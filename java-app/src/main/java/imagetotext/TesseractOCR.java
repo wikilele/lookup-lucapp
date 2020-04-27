@@ -1,42 +1,41 @@
 package imagetotext;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import model.QuizEntity;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 
 public class TesseractOCR {
+    private Tesseract tesseract;
 
-    public void apply(BufferedImage image){
-        Tesseract tesseract = new Tesseract();
+    public TesseractOCR() {
+        tesseract = new Tesseract();
+
+        Path tessdataPath = Paths.get("src","main","resources","tessdata");
+        tesseract.setLanguage("ita");
+        tesseract.setDatapath(tessdataPath.toString());
+    }
+
+    public String apply(BufferedImage image){
         try {
-            Path tessdataPath = Paths.get("src","main","resources","tessdata");
-            tesseract.setLanguage("ita");
-            tesseract.setDatapath(tessdataPath.toString());
-
             /*
              * HACK: set env variable LC_NUMERIC=C
              */
             String text = tesseract.doOCR(image);
 
-            // path of your image file
-            System.out.print(text);
+            return  text.replace("\n", " ").replace("\r", " ").trim();
         }
         catch (TesseractException e) {
             e.printStackTrace();
+            return "";
         }
     }
 
-    public String getQuestion(){
-        return "question";
-    }
-
-
-    public String getOption(int optionIndex){
-        return "option" + optionIndex;
+    public void apply(QuizEntity entity){
+        String text = this.apply(entity.getImage());
+        entity.setText(text);
     }
 }

@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 
 import imagetotext.Screenshot;
 import imagetotext.TesseractOCR;
+import model.Answer;
 
 public class LookupLucapp {
 
@@ -28,12 +29,10 @@ public class LookupLucapp {
             return;
         }
 
-        ocr.apply(screenshot.getQuestion());
-        for(BufferedImage a: screenshot.getAnswers()){
-            ocr.apply(a);
+        ocr.apply(screenshot.getQuestion().getImage());
+
+        for(Answer a: screenshot.getAnswers()){
+            ocr.apply(a.getImage());
         }
-
-
     }
-    
 }

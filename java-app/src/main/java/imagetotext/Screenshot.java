@@ -14,7 +14,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-import lombok.Getter;
+import model.Answer;
+import model.Question;
 
 public class Screenshot {
     private final int HEIGHT;
@@ -26,10 +27,12 @@ public class Screenshot {
     private final int LEFT;
     private final int RIGHT;
 
-    private BufferedImage original;
-    @Getter
+    private final int WHITE = Color.WHITE.getRGB();
+    private final int BLACK = Color.BLACK.getRGB();
+
+    private final BufferedImage original;
+
     private BufferedImage question;
-    @Getter
     private ArrayList<BufferedImage> answers = new ArrayList<>();
 
     public Screenshot(Path imgPath) throws  IOException{
@@ -48,15 +51,14 @@ public class Screenshot {
     private void process(BufferedImage screenshot){
         BufferedImage screenshotBlackAndWhite =  toBlackAndWhite(screenshot);
         ArrayList<Integer> HEIGHT_SCOPES = findAnswersSpots(screenshotBlackAndWhite);
+
+        colorBorderWhite(screenshotBlackAndWhite, LEFT,RIGHT, HEIGHT_SCOPES.get(0),HEIGHT_SCOPES.get(5));
+
         // now we get the question and the answer sub images
         split(screenshotBlackAndWhite,HEIGHT_SCOPES);
 
-        for(BufferedImage a : answers){
-            colorBorderWhite(a);
-        }
-
         colorSwap(question);
-        print(question);
+        //print(question);
         //print(answers.get(0));
         //print(answers.get(1));
         //print(answers.get(2));
@@ -104,8 +106,6 @@ public class Screenshot {
             if (whiteCount > blackCount && !wasWhite){
                 // we are in the answer section
                 // we just entered this section so we need to record this y
-                // System.out.println("from");
-                // System.out.println(y);
                 HEIGHT_SCOPES.add(y);
 
                 wasWhite = true;
@@ -113,9 +113,8 @@ public class Screenshot {
             if (blackCount > whiteCount && wasWhite){
                 // we are in a non answer section
                 // we just exited the answer section so we need to record this y
-                // System.out.println("to");
-                // System.out.println(y);
-                HEIGHT_SCOPES.add(y);
+                // y - 1 because we don't want the black line
+                HEIGHT_SCOPES.add(y + 1);
 
                 wasWhite = false;
             }
@@ -128,7 +127,7 @@ public class Screenshot {
     }
 
     /**
-     * According to the scopes founded we slipt the image getting the question and the answers
+     * According to the scopes founded we split the image getting the question and the answers
      */
     private void split(BufferedImage image, ArrayList<Integer> HEIGHT_SCOPES) {
         question = image.getSubimage( 0, TOP, WIDTH, HEIGHT_SCOPES.get(0) - TOP);
@@ -142,12 +141,22 @@ public class Screenshot {
     }
 
     /**
-     * the answers still have a bit of black at the borders, we want to delete that
+     * the answers still have a bit of non white borders, we want to delete that
      * in order to improve OCR
+     *
+     * the coordinates in input refer to the rectangle containing the answers
      */
-    private void colorBorderWhite(BufferedImage image){
-        // do nothing at the moment we will see if the ocr is good
+    private void colorBorderWhite(BufferedImage image, int fromX, int toX, int fromY, int toY){
+        for (int y = fromY; y < toY; y++){
+            // if the first pixel is black it's ok the color all the line white
+            if (image.getRGB(fromX,y) != WHITE){
+                for(int x = fromX; x < toX; x ++){
+                    image.setRGB(x,y,WHITE);
+                }
+            }
+        }
     }
+
 
     /**
      * swaps the color of an image, it's useful for the question in order to have the words in black
@@ -162,6 +171,18 @@ public class Screenshot {
                 if(pixelColor == black) image.setRGB(x,y,white);
             }
         }
+    }
+
+    public Question getQuestion(){
+        return new Question(question);
+    }
+
+    public ArrayList<Answer> getAnswers(){
+        ArrayList<Answer> retvalue = new ArrayList<>();
+        for(int i = 0; i < answers.size(); i ++){
+            retvalue.add(new Answer(i,answers.get(i)));
+        }
+        return  retvalue;
     }
 
 
