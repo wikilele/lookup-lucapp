@@ -2,8 +2,5 @@
 .idea/
 __pycache__/
 
-
-/java-app/lookup-lucapp/nbproject/private/
-/java-app/lookup-lucapp/build/
-/java-app/LookupLucapp/nbproject/private/
-/java-app/LookupLucapp/build/
+old-java-app
+python-app/tessdata

@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import model.QuizEntity;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
+import search.TextProcessing;
 
 public class TesseractOCR {
     private Tesseract tesseract;
@@ -26,7 +27,7 @@ public class TesseractOCR {
              */
             String text = tesseract.doOCR(image);
 
-            return  text.replace("\n", " ").replace("\r", " ").trim();
+            return TextProcessing.cleanSpaces(text);
         }
         catch (TesseractException e) {
             e.printStackTrace();
