@@ -1,5 +1,6 @@
 package imagetotext;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Path;
@@ -10,17 +11,13 @@ import net.sourceforge.tess4j.TesseractException;
 
 public class TesseractOCR {
 
-    public void apply(String path){
+    public void apply(BufferedImage image){
         Tesseract tesseract = new Tesseract();
         try {
             Path tessdataPath = Paths.get("src","main","resources","tessdata");
-            System.out.println(tessdataPath);
             tesseract.setLanguage("ita");
             tesseract.setDatapath(tessdataPath.toString());
 
-            // the path of your tess data folder
-            // inside the extracted file
-            File image = new File(path);
             /*
              * HACK: set env variable LC_NUMERIC=C
              */

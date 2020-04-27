@@ -10,8 +10,5 @@ public class TesseractOCRTest {
     public void simpleTest(){
         TesseractOCR ocr = new TesseractOCR();
 
-        Path resourcePath = Paths.get("src","test","resources","screens","screen.png");
-        System.out.println(resourcePath);
-        ocr.apply(resourcePath.toString());
     }
 }
