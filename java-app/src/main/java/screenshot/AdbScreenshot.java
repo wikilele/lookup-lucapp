@@ -33,6 +33,7 @@ public class AdbScreenshot implements IScreenshot {
     public boolean take(){
 
         try {
+        	//adb shell screencap -p | sed 's|\r$||' > screenshot.png
             execBashCommand("/bin/bash","-l", "-c", "adb exec-out screencap -p >" + imgPath);
         } catch (InterruptedException | IOException e){
             e.printStackTrace();
