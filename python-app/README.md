@@ -39,3 +39,5 @@ $ python3 main.py
 
 ```
 
+[link-author]: https://github.com/sushant10
+[adb]: https://developer.android.com/studio/command-line/adb

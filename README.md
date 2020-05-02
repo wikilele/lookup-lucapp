@@ -1,19 +1,7 @@
 # lookup-lucapp (Live Quiz Bot)
-![License: MIT][ico-license]
- 
-# Disclaimer
 
-Using this bot to cheat is forbidden, so **DO NOT USE IT!**. 
+The python version is not working: it is slow and not accurate.
 
-The bot at the moment is not working: The python bot is very slow and not accurate.
+A new java version has been developed using the python one as a proof of work.
 
-Maybe, MAYBE, maybe I will provide a Java version of it.
-
-## License
-
-The MIT License (MIT)
-
-[ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
-[link-author]: https://github.com/sushant10
-[mygithub]: https://github.com/wikilele
-[adb]: https://developer.android.com/studio/command-line/adb
+The screenshot to text functionality is really improved; while the search part can still be enhanced.
