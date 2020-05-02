@@ -7,6 +7,7 @@
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 import imagetotext.ImageParser;
@@ -28,7 +29,7 @@ public class LookupLucapp {
         TesseractOCR ocr = new TesseractOCR();
         GoogleSearch googleSearch = new GoogleSearch();
 
-        Time.start("main");
+        Time mainTime = new Time("main");
         try {
             imageParser = new ImageParser(screenPath);
         } catch (IOException e) {
@@ -36,27 +37,39 @@ public class LookupLucapp {
             return;
         }
 
+        Time questionTime = new Time("question");
         Question question = imageParser.getQuestion();
 
         ocr.apply(question);
         TextProcessing.deletePunctuation(question);
         TextProcessing.deleteStopWords(question);
 
+        questionTime.end();
+
         List<Answer> answers = imageParser.getAnswers();
+        List<BotThread> botThreads = new ArrayList<>();
 
+        Time answersTime = new Time("answers") ;
         for(Answer a: answers){
-            ocr.apply(a);
-
-            TextProcessing.deletePunctuation(a);
-            TextProcessing.deleteStopWords(a);
-
-            googleSearch.search(question, a);
-
+            BotThread botThread = new BotThread(question,a);
+            botThreads.add(botThread);
+            botThread.start();
         }
 
+        for(BotThread botThread : botThreads) {
+            try {
+                botThread.join();
+            } catch (InterruptedException e) {
+                continue;
+            }
+        }
+        answersTime.end();
+
+        System.out.println(question.getOriginalText());
         System.out.println(answers.get(0).getOriginalText() + " score: " + answers.get(0).getScore());
         System.out.println(answers.get(1).getOriginalText() + " score: " + answers.get(1).getScore());
         System.out.println(answers.get(2).getOriginalText() + " score: " + answers.get(2).getScore());
-        Time.end();
+
+        mainTime.end();
     }
 }

@@ -47,9 +47,10 @@ public class LookupLucappTest {
 
         }
 
-        System.out.println(answers.get(0).getOriginalText() + " score: " + answers.get(0).getScore());
-        System.out.println(answers.get(1).getOriginalText() + " score: " + answers.get(1).getScore());
-        System.out.println(answers.get(2).getOriginalText() + " score: " + answers.get(2).getScore());
+        System.out.println(question.getOriginalText());
+        System.out.println(answers.get(0).getOriginalText() + " | score: " + answers.get(0).getScore());
+        System.out.println(answers.get(1).getOriginalText() + " | score: " + answers.get(1).getScore());
+        System.out.println(answers.get(2).getOriginalText() + " | score: " + answers.get(2).getScore());
 
     }
 }
