@@ -1,10 +1,12 @@
 package screenshot;
 
+import java.nio.file.Path;
+
 public interface IScreenshot {
 
     boolean init();
 
     boolean take();
 
-    String getAsString();
+    Path get();
 }

@@ -14,17 +14,20 @@ import imagetotext.ImageParser;
 import imagetotext.TesseractOCR;
 import model.Answer;
 import model.Question;
+import screenshot.AdbScreenshot;
+import screenshot.IScreenshot;
 import search.GoogleSearch;
 import text.TextProcessing;
 import util.Time;
 
 public class LookupLucapp {
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
-        Path screenPath = Paths.get("src","test","resources","screens","livequiz2.jpg");
+
+        IScreenshot screenshot = new AdbScreenshot();
+        screenshot.init();
+        screenshot.take();
+        Path screenPath = screenshot.get();
         ImageParser imageParser;
         TesseractOCR ocr = new TesseractOCR();
         GoogleSearch googleSearch = new GoogleSearch();

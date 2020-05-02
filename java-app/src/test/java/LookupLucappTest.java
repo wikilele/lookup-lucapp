@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import search.GoogleSearch;
 import text.TextProcessing;
+import util.Time;
 
 public class LookupLucappTest {
 
@@ -21,6 +22,7 @@ public class LookupLucappTest {
         TesseractOCR ocr = new TesseractOCR();
         GoogleSearch googleSearch = new GoogleSearch();
 
+        Time main = new Time("main");
         try {
             imageParser = new ImageParser(screenPath);
         } catch (IOException e) {
@@ -51,6 +53,6 @@ public class LookupLucappTest {
         System.out.println(answers.get(0).getOriginalText() + " | score: " + answers.get(0).getScore());
         System.out.println(answers.get(1).getOriginalText() + " | score: " + answers.get(1).getScore());
         System.out.println(answers.get(2).getOriginalText() + " | score: " + answers.get(2).getScore());
-
+        main.end();
     }
 }
