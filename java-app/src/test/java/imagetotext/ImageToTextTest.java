@@ -69,7 +69,7 @@ public class ImageToTextTest {
 
         for (int i = 0; i < answers.size(); i++) {
             ocr.apply(answers.get(i));
-            Assert.assertEquals(expectedAnswers[i], answers.get(i).getText());
+            Assert.assertEquals(expectedAnswers[i], answers.get(i).getOriginalText());
         }
     }
 }

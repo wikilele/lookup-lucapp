@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,15 +7,15 @@ import imagetotext.ImageParser;
 import imagetotext.TesseractOCR;
 import model.Answer;
 import model.Question;
+import org.junit.Assert;
+import org.junit.Test;
 import search.GoogleSearch;
 import text.TextProcessing;
 
-public class LookupLucapp {
+public class LookupLucappTest {
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
+    @Test
+    public void testQuiz2() {
         Path screenPath = Paths.get("src","test","resources","screens","livequiz2.jpg");
         ImageParser imageParser;
         TesseractOCR ocr = new TesseractOCR();
@@ -31,6 +25,7 @@ public class LookupLucapp {
             imageParser = new ImageParser(screenPath);
         } catch (IOException e) {
             e.printStackTrace();
+            Assert.fail();
             return;
         }
 
@@ -55,5 +50,6 @@ public class LookupLucapp {
         System.out.println(answers.get(0).getOriginalText() + " score: " + answers.get(0).getScore());
         System.out.println(answers.get(1).getOriginalText() + " score: " + answers.get(1).getScore());
         System.out.println(answers.get(2).getOriginalText() + " score: " + answers.get(2).getScore());
+
     }
 }
