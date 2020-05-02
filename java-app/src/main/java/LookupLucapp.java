@@ -15,6 +15,7 @@ import model.Answer;
 import model.Question;
 import search.GoogleSearch;
 import text.TextProcessing;
+import util.Time;
 
 public class LookupLucapp {
 
@@ -27,6 +28,7 @@ public class LookupLucapp {
         TesseractOCR ocr = new TesseractOCR();
         GoogleSearch googleSearch = new GoogleSearch();
 
+        Time.start("main");
         try {
             imageParser = new ImageParser(screenPath);
         } catch (IOException e) {
@@ -55,5 +57,6 @@ public class LookupLucapp {
         System.out.println(answers.get(0).getOriginalText() + " score: " + answers.get(0).getScore());
         System.out.println(answers.get(1).getOriginalText() + " score: " + answers.get(1).getScore());
         System.out.println(answers.get(2).getOriginalText() + " score: " + answers.get(2).getScore());
+        Time.end();
     }
 }
