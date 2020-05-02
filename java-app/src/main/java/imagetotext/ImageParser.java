@@ -17,7 +17,7 @@ import javax.swing.JLabel;
 import model.Answer;
 import model.Question;
 
-public class Screenshot {
+public class ImageParser {
     private final int HEIGHT;
     private final int WIDTH;
 
@@ -35,7 +35,7 @@ public class Screenshot {
     private BufferedImage question;
     private ArrayList<BufferedImage> answers = new ArrayList<>();
 
-    public Screenshot(Path imgPath) throws  IOException{
+    public ImageParser(Path imgPath) throws  IOException{
         original = ImageIO.read(imgPath.toFile());
         HEIGHT = original.getHeight();
         WIDTH = original.getWidth();

@@ -50,22 +50,22 @@ public class ImageToTextTest {
 
     private void testScreenshot(int number, String expectedQuestion, String[] expectedAnswers){
         String screenshotName = "livequiz" +  Integer.toString(number) + ".jpg";
-        Screenshot screenshot;
+        ImageParser imageParser;
 
         Path screenPath = Paths.get("src","test","resources","screens",screenshotName);
         try {
-            screenshot = new Screenshot(screenPath);
+            imageParser = new ImageParser(screenPath);
         } catch (IOException e) {
             e.printStackTrace();
             Assert.fail();
             return;
         }
 
-        String questionText = ocr.apply(screenshot.getQuestion().getImage());
+        String questionText = ocr.apply(imageParser.getQuestion().getImage());
         Assert.assertEquals(expectedQuestion, questionText);
 
 
-        ArrayList<Answer> answers = screenshot.getAnswers();
+        ArrayList<Answer> answers = imageParser.getAnswers();
 
         for (int i = 0; i < answers.size(); i++) {
             ocr.apply(answers.get(i));

@@ -1,0 +1,43 @@
+---
+stop_words:
+  - chi
+  - cosa
+  - dove
+  - quando
+  - quale
+  - perché
+  - questo
+  - questa
+  - questi
+  - queste
+  - quello
+  - quella
+  - quelli
+  - quelle
+  - un
+  - uno
+  - una
+  - il
+  - lo
+  - la
+  - i
+  - gli
+  - le
+  - di
+  - del
+  - dello
+  - della
+  - a
+  - da
+  - in
+  - con
+  - su
+  - per
+  - tra
+  - fra
+  - ne
+
+negative_words:
+  - non
+  - NON
+  - eccetto

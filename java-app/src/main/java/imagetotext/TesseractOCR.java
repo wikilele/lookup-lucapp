@@ -7,7 +7,7 @@ import java.nio.file.Paths;
 import model.QuizEntity;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
-import search.TextProcessing;
+import text.TextProcessing;
 
 public class TesseractOCR {
     private Tesseract tesseract;
@@ -37,6 +37,6 @@ public class TesseractOCR {
 
     public void apply(QuizEntity entity){
         String text = this.apply(entity.getImage());
-        entity.setText(text);
+        entity.initOriginalText(text);
     }
 }
