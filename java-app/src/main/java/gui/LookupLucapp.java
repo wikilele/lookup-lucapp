@@ -58,8 +58,14 @@ public class LookupLucapp {
 
                 questionLabel.setText(question.getOriginalText());
 
-                int maxScore = answers.stream().mapToInt(Answer::getScore).max().getAsInt();
-                int minScore = answers.stream().mapToInt(Answer::getScore).min().getAsInt();
+                int maxScore = Integer.MIN_VALUE;
+                int minScore = Integer.MAX_VALUE;
+
+                for (Answer a : answers) {
+                    int score = a.getScore();
+                    if (score > maxScore) maxScore = score;
+                    if (score < minScore) minScore = score;
+                }
 
                 for (int i = 0; i < answersPanel.getComponents().length; i ++) {
                     JPanel answerPanel = (JPanel) answersPanel.getComponent(i);
