@@ -1,5 +1,7 @@
 package gui;
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
@@ -16,12 +18,22 @@ import model.Question;
 
 public class LookupLucapp {
     private JPanel lookupLucappPanel;
+    private JPanel quizPanel;
+    private JPanel questionPanel;
+    private JPanel answersPanel;
+    private JPanel timePanel;
     private JButton screenshotButton;
     private JLabel questionLabel;
-    private JLabel answerOneLabel;
-    private JLabel answerTwoLabel;
-    private JLabel answerThreeLabel;
     private JLabel timeLabel;
+    private JPanel answer3Panel;
+    private JPanel answer2Panel;
+    private JPanel answer1Panel;
+    private JLabel answer3ScoreLabel;
+    private JLabel answer3Label;
+    private JLabel answer2ScoreLabel;
+    private JLabel answer2Label;
+    private JLabel answer1ScoreLabel;
+    private JLabel answer1Label;
     private LiveQuizBot liveQuizBot;
 
     public LookupLucapp() {
@@ -38,10 +50,18 @@ public class LookupLucapp {
                 }
                 Question question = liveQuizBot.getQuestion();
                 List<Answer> answers = liveQuizBot.getAnswers();
+
                 questionLabel.setText(question.getOriginalText());
-                answerOneLabel.setText(answers.get(0).getOriginalText() + " SCORE " + answers.get(0).getScore());
-                answerTwoLabel.setText(answers.get(1).getOriginalText() + " SCORE " + answers.get(1).getScore());
-                answerThreeLabel.setText(answers.get(2).getOriginalText() + " SCORE " + answers.get(2).getScore());
+
+                answer1Label.setText(answers.get(0).getOriginalText());
+                answer1ScoreLabel.setText(String.valueOf(answers.get(0).getScore()));
+
+                answer2Label.setText(answers.get(1).getOriginalText());
+                answer2ScoreLabel.setText(String.valueOf(answers.get(1).getScore()));
+                
+                answer3Label.setText(answers.get(2).getOriginalText());
+                answer3ScoreLabel.setText(String.valueOf(answers.get(2).getScore()));
+
                 timeLabel.setText(time + " milliseconds");
             }
         });
@@ -55,6 +75,12 @@ public class LookupLucapp {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
+
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int screenHeight = screenSize.height;
+        int screenWidth = screenSize.width;
+        frame.setSize(screenWidth/2,screenHeight/2);
+        frame.setLocation(screenWidth/3,screenHeight/5);
 
     }
 
