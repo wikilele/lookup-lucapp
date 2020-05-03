@@ -1,5 +1,6 @@
 package gui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -36,6 +37,10 @@ public class LookupLucapp {
     private JLabel answer1Label;
     private LiveQuizBot liveQuizBot;
 
+    private static Color LIGHT_YELLOW = new Color(255,255,102);
+    private static Color LIGHT_GREEN = new Color(144,238,144);
+    private static Color LIGHT_RED = new Color(255,100,100);
+
     public LookupLucapp() {
         liveQuizBot = new LiveQuizBot();
         screenshotButton.addActionListener(new ActionListener() {
@@ -53,16 +58,27 @@ public class LookupLucapp {
 
                 questionLabel.setText(question.getOriginalText());
 
-                answer1Label.setText(answers.get(0).getOriginalText());
-                answer1ScoreLabel.setText(String.valueOf(answers.get(0).getScore()));
+                int maxScore = answers.stream().mapToInt(Answer::getScore).max().getAsInt();
+                int minScore = answers.stream().mapToInt(Answer::getScore).min().getAsInt();
 
-                answer2Label.setText(answers.get(1).getOriginalText());
-                answer2ScoreLabel.setText(String.valueOf(answers.get(1).getScore()));
-                
-                answer3Label.setText(answers.get(2).getOriginalText());
-                answer3ScoreLabel.setText(String.valueOf(answers.get(2).getScore()));
+                for (int i = 0; i < answersPanel.getComponents().length; i ++) {
+                    JPanel answerPanel = (JPanel) answersPanel.getComponent(i);
+                    JLabel answerLabel = (JLabel) answerPanel.getComponent(0);
+                    JLabel answerScoreLabel = (JLabel) answerPanel.getComponent(1);
 
-                timeLabel.setText(time + " milliseconds");
+                    int score = answers.get(i).getScore();
+                    answerLabel.setText(answers.get(i).getOriginalText());
+                    answerScoreLabel.setText(String.valueOf(score));
+
+                    Color backgroundColor = LIGHT_YELLOW;
+                    if (score == maxScore) {
+                        backgroundColor = LIGHT_GREEN;
+                    } else if (score == minScore) {
+                        backgroundColor = LIGHT_RED;
+                    }
+                    answerPanel.setBackground(backgroundColor);
+                }
+                timeLabel.setText(time/1000.0 + " seconds");
             }
         });
     }
