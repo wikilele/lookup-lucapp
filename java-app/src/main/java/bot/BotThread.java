@@ -1,3 +1,5 @@
+package bot;
+
 import imagetotext.TesseractOCR;
 import model.Answer;
 import model.Question;

@@ -10,8 +10,9 @@ public class Time {
         startTime = System.nanoTime();
     }
 
-    public void end() {
+    public long end() {
         long duration = (System.nanoTime() - startTime)/1000000;
         System.out.println("TIME:: " + name + " finished in " + (duration) + " milliseconds");
+        return duration;
     }
 }
