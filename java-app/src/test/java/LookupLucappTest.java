@@ -17,7 +17,7 @@ public class LookupLucappTest {
 
     @Test
     public void testQuiz2() {
-        Path screenPath = Paths.get("src","test","resources","screens","livequiz2.jpg");
+        Path screenPath = Paths.get("src","test","resources","screens","livequiz1.jpg");
         ImageParser imageParser;
         TesseractOCR ocr = new TesseractOCR();
         GoogleSearch googleSearch = new GoogleSearch();
@@ -34,6 +34,8 @@ public class LookupLucappTest {
         Question question = imageParser.getQuestion();
 
         ocr.apply(question);
+        if (TextProcessing.containsNegation(question))
+            TextProcessing.deleteNegations(question);
         TextProcessing.deletePunctuation(question);
         TextProcessing.deleteStopWords(question);
 

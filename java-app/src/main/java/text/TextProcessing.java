@@ -30,6 +30,15 @@ public class TextProcessing {
         return text.replaceAll("\\p{Punct}", "");
     }
 
+    public static String deleteNegations(String text) {
+        text = text.toLowerCase();
+        for (String word : toDeleteWords.get("negative_words")) {
+            text = text.replaceAll("\\b" + word + "\\b","");
+        }
+        return text;
+    }
+
+
     public static String deleteStopWords(String text) {
         text = text.toLowerCase();
         for (String word : toDeleteWords.get("stop_words")) {
@@ -53,13 +62,18 @@ public class TextProcessing {
         entity.setProcessedText(deletePunctuation(entity.getProcessedText()));
     }
 
+    public static void deleteNegations(QuizEntity entity) {
+        entity.setProcessedText(deleteNegations(entity.getProcessedText()));
+    }
+
     public static void deleteStopWords(QuizEntity entity) {
         entity.setProcessedText(deleteStopWords(entity.getProcessedText()));
     }
 
-    public static void containsNegation(Question question) {
+    public static boolean containsNegation(Question question) {
         boolean isNegative = containsNegation(question.getOriginalText());
         question.isNegative(isNegative);
+        return isNegative;
     }
 
 }

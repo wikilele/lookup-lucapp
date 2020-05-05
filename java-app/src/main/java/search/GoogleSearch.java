@@ -37,6 +37,6 @@ public class GoogleSearch {
         } catch (IOException e) {
             score = 0;
         }
-        answer.setScore(score);
+        answer.setScore(score, question);
     }
 }

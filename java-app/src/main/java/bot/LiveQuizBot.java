@@ -44,6 +44,8 @@ public class LiveQuizBot {
         imageParser = new ImageParser(screenPath);
         question = imageParser.getQuestion();
         ocr.apply(question);
+        if (TextProcessing.containsNegation(question))
+            TextProcessing.deleteNegations(question);
         TextProcessing.deletePunctuation(question);
         TextProcessing.deleteStopWords(question);
         questionTime.end();
