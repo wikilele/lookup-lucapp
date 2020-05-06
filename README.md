@@ -11,7 +11,7 @@ Not going to mantain the python app.
 A new java version has been developed using the python one as a proof of work.
 
 - the screenshot to text functionality is really improved
-    - all the test screenshot are read perfectly
+    - all the test screenshots are read perfectly
 
 - the search part can still be enhanced
     - it just takes the `number` of results given by a google search
